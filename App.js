@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
-import Accordian from './Components/Accordian'
+import IngredientsPage from './Screens/IngredientsPage'
+import CameraPage from './Screens/CameraPage'
+
 
 var ingrdnts_to_description = [
   { 'Soy Sauce': 'A Chinese sauce' },
@@ -8,21 +10,14 @@ var ingrdnts_to_description = [
 ];
 
 export default function App() {
+  const [ingrdnts, setIngrdnts] = useState(ingrdnts_to_description);
+  let content = <CameraPage/>;
+  if (true){
+    content = <IngredientsPage ingrdnts = {ingrdnts}/>;
+  }
   return (
-
-    <View style={styles.container}>
-      {ingrdnts_to_description.map((obj) => {
-        let key = Object.keys(obj)[0];
-        return <Accordian key={key} title={key} data={obj[key]} />;
-      })}
+    <View>
+      {content}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 100,
-
-  }
-});
