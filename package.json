@@ -13,7 +13,9 @@
     "react-dom": "16.8.3",
     "react-native": "https://github.com/expo/react-native/archive/sdk-35.0.0.tar.gz",
     "react-native-collapsible": "^1.5.1",
-    "react-native-web": "^0.11.7"
+    "react-native-web": "^0.11.7",
+    "expo-permissions": "~7.0.0",
+    "expo-camera": "~7.0.0"
   },
   "devDependencies": {
     "babel-preset-expo": "^7.1.0"
