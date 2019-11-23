@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import IngredientsPage from './Screens/IngredientsPage';
-
 import CameraPage from './Screens/CameraPage';
 
 var ingrdnts_to_description = [
@@ -10,13 +9,14 @@ var ingrdnts_to_description = [
 ];
 
 export default function App() {
+
   const [ingrdnts, setIngrdnts] = useState(ingrdnts_to_description);
-  let content = <CameraPage/>;
+  var content = <CameraPage />;
   //Once picture is taken render ingredients page
-  if (false){
-    content = <IngredientsPage ingrdnts = {ingrdnts}/>;
+  if (false) {
+    content = <IngredientsPage ingrdnts={ingrdnts} />;
   }
   return (
-      content
+    content
   );
 }

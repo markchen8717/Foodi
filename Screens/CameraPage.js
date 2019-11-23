@@ -3,46 +3,51 @@ import React from 'react';
 import { Text, View, TouchableOpacity } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
+import CameraToolBar from '../Components/CameraToolBar'
 
 export default class CameraPage extends React.Component {
-  camera = null;
+    camera = null;
 
-  state = {
-      hasCameraPermission: null,
-  };
+    state = {
+        hasCameraPermission: null,
+    };
 
-  async componentDidMount() {
-      const camera = await Permissions.askAsync(Permissions.CAMERA);
-      const audio = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
-      const hasCameraPermission = (camera.status === 'granted' && audio.status === 'granted');
+    async componentDidMount() {
+        const camera = await Permissions.askAsync(Permissions.CAMERA);
+        const hasCameraPermission = (camera.status === 'granted');
 
-      this.setState({ hasCameraPermission });
-  };
+        this.setState({ hasCameraPermission });
+    };
 
-  render() {
-      const { hasCameraPermission } = this.state;
+    render() {
+        const { hasCameraPermission } = this.state;
 
-      if (hasCameraPermission === null) {
-          return <View />;
-      } else if (hasCameraPermission === false) {
-          return <Text>Access to camera has been denied.</Text>;
-      }
+        if (hasCameraPermission === null) {
+            return <View />;
+        } else if (hasCameraPermission === false) {
+            return <Text>Access to camera has been denied.</Text>;
+        }
 
-      return (
-          <View>
-              <Camera
-                  style = {styles.preview}
-                  ref={camera => this.camera = camera}
-              />
-          </View>
-      );
-  };
+        return (
+            // using a react fragment to render multiple elements without a wrapper component
+            <React.Fragment>
+                <View>
+                    <Camera
+                        style={styles.preview}
+                        ref={camera => this.camera = camera}
+                    />
+                </View>
+
+                <CameraToolBar />
+            </React.Fragment>
+
+        );
+    };
 };
 
-
 const { width: winWidth, height: winHeight } = Dimensions.get('window');
-
-const styles =  StyleSheet.create({
+const styles = StyleSheet.create({
+    //make the camera component absolutely positioned and make it take up the full height and width of the device screen.
     preview: {
         height: winHeight,
         width: winWidth,
@@ -51,5 +56,5 @@ const styles =  StyleSheet.create({
         top: 0,
         right: 0,
         bottom: 0,
-    },
+    }
 });
