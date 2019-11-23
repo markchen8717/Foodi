@@ -10,7 +10,7 @@ npm-debug.*
 *.orig.*
 web-build/
 web-report/
-./to_do_list.txt
+.idea
 
 # macOS
 .DS_Store
