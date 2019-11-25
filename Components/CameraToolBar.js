@@ -1,22 +1,33 @@
 import React from 'react';
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, Text } from 'react-native';
 import { Camera } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 import { Col, Row, Grid } from "react-native-easy-grid";
 import { View, TouchableWithoutFeedback, TouchableOpacity } from 'react-native';
+
 
 export default function CameraToolBar(props) {
     return (
         <Grid style={styles.bottomToolbar}>
             <Row>
                 <Col size={2} style={styles.alignCenter}>
-                    <TouchableWithoutFeedback
-                        onPress={props.onImageCapture}>
-                        <View style={styles.captureBtn}/>
-                    </TouchableWithoutFeedback>
+                    {props.status == "capturing" &&
+                        < TouchableWithoutFeedback
+                            onPress={props.onImageCapture}>
+                            <View style={styles.captureBtn} />
+                        </TouchableWithoutFeedback>
+                    }
+                    {props.status == "captured" &&
+                        < TouchableWithoutFeedback
+                            onPress={props.onRetake}>
+                            <Text>
+                                Retake
+                            </Text>
+                        </TouchableWithoutFeedback>
+                    }
                 </Col>
             </Row>
-        </Grid>
+        </Grid >
     );
 }
 

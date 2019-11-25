@@ -1,6 +1,6 @@
 import { StyleSheet, Dimensions } from 'react-native';
 import React from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { Text, View, TouchableOpacity, Image } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import CameraToolBar from '../Components/CameraToolBar'
@@ -10,14 +10,22 @@ export default class CameraPage extends React.Component {
 
     state = {
         hasCameraPermission: null,
-        captures: [],
+        image: null,
+        status: "capturing"
     };
+
+    setStatus = (newStatus) => this.setState({ status: newStatus });
 
     handleImageCapture = async () => {
         const photoData = await this.camera.takePictureAsync();
-        this.setState({ captures: [photoData, ...this.state.captures] })
-        console.log(this.state.captures)
+        this.setState({ image: photoData });
+        this.setStatus("captured");
     };
+
+    handleRetake = () => {
+        this.setStatus("capturing");
+    }
+
 
     async componentDidMount() {
         const camera = await Permissions.askAsync(Permissions.CAMERA);
@@ -38,16 +46,26 @@ export default class CameraPage extends React.Component {
         return (
             // using a react fragment to render multiple elements without a wrapper component
             <React.Fragment>
-                <View>
-                    <Camera
-                        style={styles.preview}
-                        ref={camera => this.camera = camera}
-                    />
-                </View>
-
+                {this.state.status == "captured" &&
+                    <View>
+                        <Image style={styles.preview}
+                            source={{ uri: this.state.image.uri }} />
+                    </View>
+                }
+                {this.state.status == "capturing" &&
+                    <View>
+                        <Camera
+                            style={styles.preview}
+                            ref={camera => this.camera = camera}
+                        />
+                    </View>
+                }
                 <CameraToolBar
                     onImageCapture={this.handleImageCapture}
+                    status={this.state.status}
+                    onRetake={this.handleRetake}
                 />
+
             </React.Fragment>
 
         );
