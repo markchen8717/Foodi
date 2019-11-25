@@ -10,6 +10,13 @@ export default class CameraPage extends React.Component {
 
     state = {
         hasCameraPermission: null,
+        captures: [],
+    };
+
+    handleImageCapture = async () => {
+        const photoData = await this.camera.takePictureAsync();
+        this.setState({ captures: [photoData, ...this.state.captures] })
+        console.log(this.state.captures)
     };
 
     async componentDidMount() {
@@ -38,7 +45,9 @@ export default class CameraPage extends React.Component {
                     />
                 </View>
 
-                <CameraToolBar />
+                <CameraToolBar
+                    onImageCapture={this.handleImageCapture}
+                />
             </React.Fragment>
 
         );

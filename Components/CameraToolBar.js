@@ -11,13 +11,8 @@ export default function CameraToolBar(props) {
             <Row>
                 <Col size={2} style={styles.alignCenter}>
                     <TouchableWithoutFeedback
-                        onPressIn={props.onCaptureIn}
-                        onPressOut={props.onCaptureOut}
-                        onLongPress={props.onLongCapture}
-                        onPress={props.onShortCapture}>
-                        <View style={[styles.captureBtn, props.capturing && styles.captureBtnActive]}>
-                            {props.capturing && <View style={styles.captureBtnInternal} />}
-                        </View>
+                        onPress={props.onImageCapture}>
+                        <View style={styles.captureBtn}/>
                     </TouchableWithoutFeedback>
                 </Col>
             </Row>
