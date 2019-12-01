@@ -16,6 +16,10 @@ export default class CameraPage extends React.Component {
 
     setStatus = (newStatus) => this.setState({ status: newStatus });
 
+    handleScanIngredients = async() => {
+        this.props.toIngredientsPage([{'rice':'fob'}]);
+    }
+
     handleImageCapture = async () => {
         const photoData = await this.camera.takePictureAsync();
         this.setState({ image: photoData });
@@ -64,6 +68,7 @@ export default class CameraPage extends React.Component {
                     onImageCapture={this.handleImageCapture}
                     status={this.state.status}
                     onRetake={this.handleRetake}
+                    onScanIngredients={this.handleScanIngredients}
                 />
 
             </React.Fragment>

@@ -10,6 +10,16 @@ export default function CameraToolBar(props) {
     return (
         <Grid style={styles.bottomToolbar}>
             <Row>
+                <Col style={styles.alignCenter}>
+                    {props.status == "captured" &&
+                        < TouchableWithoutFeedback
+                            onPress={props.onScanIngredients}>
+                            <Text>
+                                Scan
+                            </Text>
+                        </TouchableWithoutFeedback>
+                    }
+                </Col>
                 <Col size={2} style={styles.alignCenter}>
                     {props.status == "capturing" &&
                         < TouchableWithoutFeedback
@@ -26,6 +36,7 @@ export default function CameraToolBar(props) {
                         </TouchableWithoutFeedback>
                     }
                 </Col>
+                <Col/>
             </Row>
         </Grid >
     );
