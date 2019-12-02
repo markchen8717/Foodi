@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import IngredientsPage from './Screens/IngredientsPage';
 import CameraPage from './Screens/CameraPage';
-import { REACT_APP_OCR_API_KEY } from 'react-native-dotenv'
 
 var ingrdnts_to_description_sample_data = [
   { 'Soy Sauce': 'A Chinese sauce' },

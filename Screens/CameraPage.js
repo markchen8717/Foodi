@@ -4,6 +4,9 @@ import { Text, View, TouchableOpacity, Image } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import CameraToolBar from '../Components/CameraToolBar'
+import { REACT_APP_OCR_API_KEY } from 'react-native-dotenv'
+import { REACT_APP_OCR_API_URL } from 'react-native-dotenv'
+import * as ImageManipulator from 'expo-image-manipulator';
 
 export default class CameraPage extends React.Component {
     camera = null;
@@ -16,13 +19,32 @@ export default class CameraPage extends React.Component {
 
     setStatus = (newStatus) => this.setState({ status: newStatus });
 
-    handleScanIngredients = async() => {
-        this.props.toIngredientsPage([{'rice':'fob'}]);
+    handleScanIngredients = async () => {
+        try {
+            let postBody = new FormData();
+            postBody.append("base64Image", "data:image/jpeg;base64,"+this.state.image.base64);
+            let response = await fetch(REACT_APP_OCR_API_URL, {
+                method: 'POST',
+                headers: {
+                    'apikey': REACT_APP_OCR_API_KEY,
+                },
+                body: postBody
+            });
+            let responseJson = await response.json();
+            console.log(responseJson);
+
+        }
+        catch (error) {
+            console.error(error);
+        }
+        //this.props.toIngredientsPage([{'rice':'fob'}]);
     }
 
     handleImageCapture = async () => {
-        const photoData = await this.camera.takePictureAsync();
-        this.setState({ image: photoData });
+        const photoData = await this.camera.takePictureAsync({ quality: 1, });
+        const photoData2 = await ImageManipulator.manipulateAsync(photoData.uri, [{ rotate: 0 }], { compress: 0.0, base64: true, format: ImageManipulator.SaveFormat.JPEG });
+
+        this.setState({ image: photoData2 });
         this.setStatus("captured");
     };
 
