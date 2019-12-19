@@ -4,8 +4,6 @@ import { Text, View, TouchableOpacity, Image } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import CameraToolBar from '../Components/CameraToolBar'
-import { REACT_APP_OCR_API_KEY } from 'react-native-dotenv'
-import { REACT_APP_OCR_API_URL } from 'react-native-dotenv'
 import * as ImageManipulator from 'expo-image-manipulator';
 
 export default class CameraPage extends React.Component {
@@ -17,34 +15,18 @@ export default class CameraPage extends React.Component {
         status: "capturing"
     };
 
-    setStatus = (newStatus) => this.setState({ status: newStatus });
+    setStatus = (new_status) => this.setState({ status: new_status });
 
-    handleScanIngredients = async () => {
-        try {
-            let postBody = new FormData();
-            postBody.append("base64Image", "data:image/jpeg;base64,"+this.state.image.base64);
-            let response = await fetch(REACT_APP_OCR_API_URL, {
-                method: 'POST',
-                headers: {
-                    'apikey': REACT_APP_OCR_API_KEY,
-                },
-                body: postBody
-            });
-            let responseJson = await response.json();
-            console.log(responseJson);
-
-        }
-        catch (error) {
-            console.error(error);
-        }
-        //this.props.toIngredientsPage([{'rice':'fob'}]);
+    handleScanButton =() => {
+        //add loading screen
+        this.props.toIngredientsPage(this.state.image);
     }
 
     handleImageCapture = async () => {
-        const photoData = await this.camera.takePictureAsync({ quality: 1, });
-        const photoData2 = await ImageManipulator.manipulateAsync(photoData.uri, [{ rotate: 0 }], { compress: 0.0, base64: true, format: ImageManipulator.SaveFormat.JPEG });
+        const photo_data = await this.camera.takePictureAsync({ quality: 1, });
+        const photo_data2 = await ImageManipulator.manipulateAsync(photo_data.uri, [{ rotate: 0 }], { compress: 0.0, base64: true, format: ImageManipulator.SaveFormat.JPEG });
 
-        this.setState({ image: photoData2 });
+        this.setState({ image: photo_data2 });
         this.setStatus("captured");
     };
 
@@ -90,7 +72,7 @@ export default class CameraPage extends React.Component {
                     onImageCapture={this.handleImageCapture}
                     status={this.state.status}
                     onRetake={this.handleRetake}
-                    onScanIngredients={this.handleScanIngredients}
+                    onScanIngredients={this.handleScanButton}
                 />
 
             </React.Fragment>

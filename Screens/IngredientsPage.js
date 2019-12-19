@@ -5,7 +5,7 @@ import Accordian from '../Components/Accordian'
 export default function IngredientsPage(props) {
     return (
         <View >
-            {props.ingrdnts.map((obj) => {
+            {props.ingrdnts_to_dscrption.map((obj) => {
                 let key = Object.keys(obj)[0];
                 return <Accordian key={key} title={key} data={obj[key]} />;
             })}
