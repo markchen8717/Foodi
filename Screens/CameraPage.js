@@ -5,6 +5,7 @@ import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import CameraToolBar from '../Components/CameraToolBar'
 import * as ImageManipulator from 'expo-image-manipulator';
+import { ScreenOrientation } from 'expo';
 
 export default class CameraPage extends React.Component {
     camera = null;
@@ -15,39 +16,41 @@ export default class CameraPage extends React.Component {
         status: "capturing"
     };
 
-    setStatus = (new_status) => this.setState({ status: new_status });
+    setStatus = async (new_status) => this.setState({ status: new_status });
 
-    handleScanButton =() => {
+    handleScanButton = async () => {
         //add loading screen
-        this.props.toIngredientsPage(this.state.image);
+
+        let photo_data = this.state.image;
+        for (let i = 0; i < 10; i++) {
+            photo_data = await ImageManipulator.manipulateAsync(photo_data.uri, [{ resize: { height: 1000,width:500 } }], { compress: 0.0, base64: true, format: ImageManipulator.SaveFormat.JPEG });
+        }
+        this.props.toIngredientsPage(photo_data);
     }
 
     handleImageCapture = async () => {
-        const photo_data = await this.camera.takePictureAsync({ quality: 1, });
-        const photo_data2 = await ImageManipulator.manipulateAsync(photo_data.uri, [{ rotate: 0 }], { compress: 0.0, base64: true, format: ImageManipulator.SaveFormat.JPEG });
 
-        this.setState({ image: photo_data2 });
-        this.setStatus("captured");
+        let photo_data = await this.camera.takePictureAsync({ quality: 0.0, });
+        this.setState({ image: photo_data });
+        await this.setStatus("captured");
     };
 
-    handleRetake = () => {
-        this.setStatus("capturing");
+    handleRetake = async () => {
+        await this.setStatus("capturing");
     }
 
 
     async componentDidMount() {
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
         const camera = await Permissions.askAsync(Permissions.CAMERA);
         const hasCameraPermission = (camera.status === 'granted');
-
-        this.setState({ hasCameraPermission });
+        this.setState({ hasCameraPermission: hasCameraPermission });
     };
 
     render() {
-        const { hasCameraPermission } = this.state;
+        const hasCameraPermission = this.state.hasCameraPermission;
 
-        if (hasCameraPermission === null) {
-            return <View />;
-        } else if (hasCameraPermission === false) {
+        if (hasCameraPermission === null || hasCameraPermission === false) {
             return <Text>Access to camera has been denied.</Text>;
         }
 
