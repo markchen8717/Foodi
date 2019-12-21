@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^10.0.6",
+    "cheerio-without-node-native": "^0.20.2",
     "expo": "^35.0.0",
     "expo-camera": "~7.0.0",
     "expo-image-manipulator": "^7.0.0",

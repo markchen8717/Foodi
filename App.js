@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import IngredientsPage from './Screens/IngredientsPage';
 import CameraPage from './Screens/CameraPage';
+import cheerio from 'cheerio-without-node-native'
 import { REACT_APP_OCR_API_KEY } from 'react-native-dotenv'
 import { REACT_APP_OCR_API_URL } from 'react-native-dotenv'
 import { REACT_APP_FDA_API_KEY } from 'react-native-dotenv'
@@ -9,8 +10,7 @@ import { REACT_APP_FDA_API_URL } from 'react-native-dotenv'
 import { REACT_APP_WIKI_API_URL } from 'react-native-dotenv'
 
 var sample_data = [
-  { 'Soy Sauce': 'A Chinese sauce' },
-  { 'Ponzu': 'Lemon juice + Soy Sauce' }
+  {'name': 'Soy Sauce', 'text': 'A Chinese sauce', 'visual': null }
 ];
 
 
@@ -18,6 +18,7 @@ export default function App() {
 
   const [page, setPage] = useState("CameraPage");
   const [ingrdnts_to_dscrption, setIngredientsToDescription] = useState();
+
 
   getIngredientsFromImage = async (image) => {
     console.log("scanning............");
@@ -34,17 +35,27 @@ export default function App() {
         body: postBody
       });
       let responseJson = await response.json();
-      console.log(responseJson);
+      //console.log(responseJson);
 
-      let ingrdnts_lst = responseJson["ParsedResults"][0]["ParsedText"].replace(/\r?\n/g, " ").split(" ");
+      let ingrdnts_lst = responseJson["ParsedResults"][0]["ParsedText"].replace(/\r?\n/g, ",").split(",");
 
       //filter
-      ingrdnts_lst = ingrdnts_lst.filter(function (el,index) {
-        var letters = /^[A-Za-z]+$/;
-        return el != "" && el.length > 1 && letters.test(el.value) && ingrdnts_lst.indexOf(el)===index;
-      });
+      let filtered_lst = [];
+      for (let i = 0; i < ingrdnts_lst.length; i++) {
+        let el = ingrdnts_lst[i] = ingrdnts_lst[i].toLowerCase();
+        var letters = /^[a-zA-Z\s]*$/;
+        if (el != "" && el.length > 1 && letters.test(el) && ingrdnts_lst.indexOf(el) == i) {
+          let formatted = ""
+          let words = el.split(" ");
+          words.forEach(x => {
+            formatted += " " + x[0].toUpperCase() + x.slice(1);
+          });
+          filtered_lst.push(formatted.slice(1));
+        }
+      }
 
-      return ingrdnts_lst;
+      console.log("filtered list", filtered_lst);
+      return filtered_lst;
     }
     catch (error) {
       console.error(error);
@@ -53,17 +64,17 @@ export default function App() {
 
   getIngredientDescription = async (ingredient) => {
     try {
-      let response = await fetch(REACT_APP_WIKI_API_URL + ingredient);
-      let responseJson = await response.json();
-      if (responseJson.length >= 2 &&
-        responseJson[1].length >= 1 &&
-        responseJson[1][0].toLowerCase() === ingredient.toLowerCase() &&
-        !responseJson[2][0] == "" &&
-        !responseJson[2][0].includes("refer to:")) {
-        return responseJson[2][0];
-      } else {
-        return -1;
-      }
+      console.log("getIngredientDescription");
+      let response = await fetch(REACT_APP_WIKI_API_URL + ingredient.replace(" ", "_"));
+      let responseText = await response.text();
+      let a = responseText.lastIndexOf("<p>",responseText.toLowerCase().indexOf("<b>" + ingredient.toLowerCase().slice(0, ingredient.lenth - 1)));
+      let b = responseText.indexOf("</p>",a);
+      if (a < b){
+        let p = responseText.lastIndexOf("src=",responseText.indexOf("thumbimage"))+5;
+        let q = responseText.indexOf('"',p);
+        return { "text": cheerio(responseText.slice(a, b)).text(), "visual": "https:"+responseText.slice(p,q) };
+      }else
+        return null;
     }
     catch (error) {
       console.error(error);
@@ -71,14 +82,15 @@ export default function App() {
   }
 
   toIngredientsPage = async (image) => {
+
     let ingrdnts_lst = await getIngredientsFromImage(image);
+
     let final_product = [];
     for (let i = 0; i < ingrdnts_lst.length; i++) {
-      let tmp_obj = {};
-      let value = await getIngredientDescription(ingrdnts_lst[i]);
-      if (value != -1) {
-        tmp_obj[ingrdnts_lst[i]] = value;
-        final_product.push(tmp_obj);
+      let name = ingrdnts_lst[i];
+      let dscrption = await getIngredientDescription(name);
+      if (dscrption != null) {
+        final_product.push({"name":name,"text":dscrption["text"],"visual":dscrption["visual"]});
       }
     }
     setIngredientsToDescription(final_product);

@@ -7,6 +7,8 @@ import CameraToolBar from '../Components/CameraToolBar'
 import * as ImageManipulator from 'expo-image-manipulator';
 import { ScreenOrientation } from 'expo';
 
+
+
 export default class CameraPage extends React.Component {
     camera = null;
 
@@ -22,8 +24,10 @@ export default class CameraPage extends React.Component {
         //add loading screen
 
         let photo_data = this.state.image;
-        for (let i = 0; i < 10; i++) {
-            photo_data = await ImageManipulator.manipulateAsync(photo_data.uri, [{ resize: { height: 1000,width:500 } }], { compress: 0.0, base64: true, format: ImageManipulator.SaveFormat.JPEG });
+        for (let i = 0; i < 1; i++) {
+            photo_data = await ImageManipulator.manipulateAsync(photo_data.uri, [{ resize: { width: 500 } }], { compress: 0.0, base64: true, format: ImageManipulator.SaveFormat.JPEG });
+            // this.setState({ image: photo_data });
+            // await this.setStatus("captured");
         }
         this.props.toIngredientsPage(photo_data);
     }
@@ -79,7 +83,7 @@ export default class CameraPage extends React.Component {
                 />
 
             </React.Fragment>
-
+            
         );
     };
 };

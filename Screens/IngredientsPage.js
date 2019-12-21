@@ -6,8 +6,7 @@ export default function IngredientsPage(props) {
     return (
         <View >
             {props.ingrdnts_to_dscrption.map((obj) => {
-                let key = Object.keys(obj)[0];
-                return <Accordian key={key} title={key} data={obj[key]} />;
+                return <Accordian key={obj["name"]} title={obj["name"]} text_data={obj["text"]} visual_data={obj["visual"]} />;
             })}
         </View>
     );
