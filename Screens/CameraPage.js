@@ -26,8 +26,8 @@ export default class CameraPage extends React.Component {
         let photo_data = this.state.image;
         for (let i = 0; i < 1; i++) {
             photo_data = await ImageManipulator.manipulateAsync(photo_data.uri, [{ resize: { width: 500 } }], { compress: 0.0, base64: true, format: ImageManipulator.SaveFormat.JPEG });
-            // this.setState({ image: photo_data });
-            // await this.setStatus("captured");
+            this.setState({ image: photo_data });
+            await this.setStatus("captured");
         }
         this.props.toIngredientsPage(photo_data);
     }

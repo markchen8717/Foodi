@@ -1,43 +1,48 @@
-import React, { Component, Dimensions } from 'react';
+import React, { Component, Dimensions, Fragment } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Image } from "react-native";
 import { Colors } from './Colors';
 import Icon from "react-native-vector-icons/MaterialIcons";
 
 export default class Accordian extends Component {
-
+    
     constructor(props) {
         super(props);
         this.state = {
             expanded: false,
+            collapse_all: this.props.collapse_all,
         }
     }
 
-    render() {
+    componentWillReceiveProps(nextProps){
+        if(nextProps.collapse_all!==this.props.collapse_all){
+          this.setState({expanded : false});
+          this.setState({collapse_all:nextProps.collapse_all});
+        }
+    }
 
+
+
+    render() {
         return (
             <View>
                 <TouchableOpacity style={styles.row} onPress={() => this.toggleExpand()}>
                     <Text style={[styles.title, styles.font]}>{this.props.title}</Text>
                     <Icon name={this.state.expanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} size={30} color={Colors.DARKGRAY} />
                 </TouchableOpacity>
-                <View style={styles.parentHr} />
-                {
-                    this.state.expanded &&
+
+                {this.state.expanded &&
                     <View style={styles.child}>
                         <Text>{this.props.text_data}</Text>
-                        {this.props.visual_data !== null &&
-                            <Image
-                                style={_styles.preview}
-                                source={{
-                                    uri:
-                                        this.props.visual_data,
-                                }}
-
-                            />
-                        }
+                        <Fragment> 
+                            {this.props.visual_data !== null &&
+                                <Image
+                                    style={styles.visual_data}
+                                    source={{ uri: this.props.visual_data }}
+                                />
+                            }
+                        </Fragment>
                     </View>
                 }
-
             </View>
         )
     }
@@ -48,19 +53,6 @@ export default class Accordian extends Component {
 
 }
 
-const _styles = StyleSheet.create({
-    //make the camera component absolutely positioned and make it take up the full height and width of the device screen.
-    preview: {
-        height: 100,
-        width: 100,
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-    }
-});
-
 const styles = StyleSheet.create({
     title: {
         fontSize: 14,
@@ -68,13 +60,14 @@ const styles = StyleSheet.create({
         color: Colors.DARKGRAY,
     },
     row: {
+        marginTop:'1.5%',
         flexDirection: 'row',
         justifyContent: 'space-between',
         height: 56,
         paddingLeft: 25,
         paddingRight: 18,
         alignItems: 'center',
-        backgroundColor: Colors.CGRAY,
+        backgroundColor: '#FFFACD',
     },
     parentHr: {
         height: 1,
@@ -84,6 +77,12 @@ const styles = StyleSheet.create({
     child: {
         backgroundColor: Colors.LIGHTGRAY,
         padding: 16,
+    },
+    visual_data: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        height: 250,
+        width: 250,
     }
 
 });

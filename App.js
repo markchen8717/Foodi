@@ -5,24 +5,27 @@ import CameraPage from './Screens/CameraPage';
 import cheerio from 'cheerio-without-node-native'
 import { REACT_APP_OCR_API_KEY } from 'react-native-dotenv'
 import { REACT_APP_OCR_API_URL } from 'react-native-dotenv'
-import { REACT_APP_FDA_API_KEY } from 'react-native-dotenv'
-import { REACT_APP_FDA_API_URL } from 'react-native-dotenv'
 import { REACT_APP_WIKI_API_URL } from 'react-native-dotenv'
+var pluralize = require('pluralize')
 
 var sample_data = [
-  {'name': 'Soy Sauce', 'text': 'A Chinese sauce', 'visual': null }
+  { 'name': 'Soy Sauce', 'text': 'A Chinese sauce', 'visual': null },
+  { 'name': 'Soy Sauce', 'text': 'A Chinese sauce', 'visual': null },
+  { 'name': 'Soy Sauce', 'text': 'A Chinese sauce', 'visual': null },
+  { 'name': 'Soy Sauce', 'text': 'A Chinese sauce', 'visual': null },
+  { 'name': 'Soy Sauce', 'text': 'A Chinese sauce', 'visual': null },
+
 ];
 
 
 export default function App() {
 
-  const [page, setPage] = useState("CameraPage");
-  const [ingrdnts_to_dscrption, setIngredientsToDescription] = useState();
+  const [page, setPage] = useState("IngredientsPage");
+  const [ingrdnts_to_dscrption, setIngredientsToDescription] = useState(sample_data);
 
 
   getIngredientsFromImage = async (image) => {
     console.log("scanning............");
-
     try {
       let postBody = new FormData();
       postBody.append("base64Image", "data:image/jpeg;base64," + image.base64);
@@ -50,7 +53,8 @@ export default function App() {
           words.forEach(x => {
             formatted += " " + x[0].toUpperCase() + x.slice(1);
           });
-          filtered_lst.push(formatted.slice(1));
+          
+          filtered_lst.push(pluralize.singular(formatted.slice(1)));
         }
       }
 
@@ -67,18 +71,23 @@ export default function App() {
       console.log("getIngredientDescription");
       let response = await fetch(REACT_APP_WIKI_API_URL + ingredient.replace(" ", "_"));
       let responseText = await response.text();
-      let a = responseText.lastIndexOf("<p>",responseText.toLowerCase().indexOf("<b>" + ingredient.toLowerCase().slice(0, ingredient.lenth - 1)));
-      let b = responseText.indexOf("</p>",a);
-      if (a < b){
-        let p = responseText.lastIndexOf("src=",responseText.indexOf("thumbimage"))+5;
-        let q = responseText.indexOf('"',p);
-        return { "text": cheerio(responseText.slice(a, b)).text(), "visual": "https:"+responseText.slice(p,q) };
-      }else
-        return null;
+      let a = responseText.lastIndexOf("<p>", responseText.toLowerCase().indexOf("<b>" + ingredient.toLowerCase().slice(0, ingredient.length - 1)));
+      let b = responseText.indexOf("</p>", a);
+      if (a!= -1 && b != -1 && a < b) {
+        let p = responseText.lastIndexOf("src=", responseText.indexOf("thumbimage")) + 5;
+        let q = responseText.indexOf('"', p);
+        let url = (p!= -1 && q != -1 && p < q)? responseText.slice(p, q) : null;
+        return { "text": cheerio(responseText.slice(a, b)).text(), "visual": "https:" + url };
+      } else { return null; }
     }
     catch (error) {
       console.error(error);
     }
+  }
+
+  handleSetPage = (page) =>{
+    console.log(page);
+    setPage(page);
   }
 
   toIngredientsPage = async (image) => {
@@ -90,19 +99,23 @@ export default function App() {
       let name = ingrdnts_lst[i];
       let dscrption = await getIngredientDescription(name);
       if (dscrption != null) {
-        final_product.push({"name":name,"text":dscrption["text"],"visual":dscrption["visual"]});
+        final_product.push({ "name": name, "text": dscrption["text"], "visual": dscrption["visual"] });
       }
     }
     setIngredientsToDescription(final_product);
     setPage("IngredientsPage");
   };
 
+
   var content = null;
   if (page == "IngredientsPage") {
-    content = <IngredientsPage ingrdnts_to_dscrption={ingrdnts_to_dscrption} />;
+    content = <IngredientsPage toHomePage = {setPage} ingrdnts_to_dscrption={ingrdnts_to_dscrption} />;
   }
   else if (page == "CameraPage") {
     content = <CameraPage toIngredientsPage={toIngredientsPage} />;
+  }
+  else if (page == "HomePage"){
+    content = <Text>Home page</Text>;
   }
   return (
     content
