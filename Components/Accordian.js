@@ -1,7 +1,8 @@
 import React, { Component, Dimensions, Fragment } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Image } from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet, Image, Button } from "react-native";
 import { Colors } from './Colors';
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { Linking } from 'expo';
 
 export default class Accordian extends Component {
     
@@ -41,6 +42,7 @@ export default class Accordian extends Component {
                                 />
                             }
                         </Fragment>
+                        <Text  style={{fontSize: 15, color:"blue"}} title="Details" onPress={()=> Linking.openURL(this.props.page_url)}>See Details</Text> 
                     </View>
                 }
             </View>
@@ -81,8 +83,8 @@ const styles = StyleSheet.create({
     visual_data: {
         flexDirection: 'row',
         alignItems: 'center',
-        height: 250,
-        width: 250,
+        height: 200,
+        width: 200,
     }
 
 });

@@ -21,6 +21,8 @@ const style = StyleSheet.create({
         backgroundColor: '#40E0D0',
         alignItems:'center',
         justifyContent:'center',
+        borderTopStartRadius:20,
+        borderTopEndRadius:20,
     },
     header_title:{
         color:'black',

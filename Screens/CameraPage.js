@@ -15,32 +15,35 @@ export default class CameraPage extends React.Component {
     state = {
         hasCameraPermission: null,
         image: null,
-        status: "capturing"
+        status: "capturing",
+        orientation: null,
     };
-
-    setStatus = async (new_status) => this.setState({ status: new_status });
 
     handleScanButton = async () => {
         //add loading screen
 
+        console.log("Scan Button Pressed");
         let photo_data = this.state.image;
         for (let i = 0; i < 1; i++) {
-            photo_data = await ImageManipulator.manipulateAsync(photo_data.uri, [{ resize: { width: 500 } }], { compress: 0.0, base64: true, format: ImageManipulator.SaveFormat.JPEG });
+            photo_data = await ImageManipulator.manipulateAsync(photo_data.uri, [{ resize: { height: 1500 } }], { compress: 0.5, base64: true, format: ImageManipulator.SaveFormat.JPEG });
             this.setState({ image: photo_data });
-            await this.setStatus("captured");
+            this.setState({ status: "captured" });
         }
-        this.props.toIngredientsPage(photo_data);
+        // console.log("height",photo_data.height);
+        // console.log("width",photo_data.width);
+        await this.props.toIngredientsPage(photo_data);
     }
 
     handleImageCapture = async () => {
-
-        let photo_data = await this.camera.takePictureAsync({ quality: 0.0, });
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        let photo_data = await this.camera.takePictureAsync({ quality: 0.5});
+        // console.log(photo_data);
         this.setState({ image: photo_data });
-        await this.setStatus("captured");
+        this.setState({ status: "captured" });
     };
 
     handleRetake = async () => {
-        await this.setStatus("capturing");
+        this.setState({ status: "capturing" });
     }
 
 
@@ -72,6 +75,7 @@ export default class CameraPage extends React.Component {
                         <Camera
                             style={styles.preview}
                             ref={camera => this.camera = camera}
+                            autoFocus={Camera.Constants.AutoFocus.on}
                         />
                     </View>
                 }
@@ -83,7 +87,7 @@ export default class CameraPage extends React.Component {
                 />
 
             </React.Fragment>
-            
+
         );
     };
 };
