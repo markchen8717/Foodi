@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import IngredientsPage from './Screens/IngredientsPage';
+import HomePage from './Screens/HomePage';
 import CameraPage from './Screens/CameraPage';
 import cheerio from 'cheerio-without-node-native'
 import { REACT_APP_OCR_API_KEY } from 'react-native-dotenv'
@@ -10,8 +11,6 @@ import { REACT_APP_FDA_API_KEY } from 'react-native-dotenv'
 import { REACT_APP_FDA_API_URL } from 'react-native-dotenv'
 import { REACT_APP_WIKI_URL } from 'react-native-dotenv'
 
-var pluralize = require('pluralize')
-
 var sample_data = [
   { 'name': 'Soy Sauce', 'text': 'A Chinese sauce', 'visual': "https://media.wired.com/photos/598e35fb99d76447c4eb1f28/master/pass/phonepicutres-TA.jpg", 'page_url': "https://google.ca" },
 
@@ -20,7 +19,7 @@ var sample_data = [
 
 export default function App() {
 
-  const [page, setPage] = useState("CameraPage");
+  const [page, setPage] = useState("HomePage");
   const [ingrdnts_to_dscrption, setIngredientsToDescription] = useState(sample_data);
 
   getIngredientsFromImage = async (image) => {
@@ -39,7 +38,7 @@ export default function App() {
       const responseJson = await response.json();
       //console.log(responseJson);
 
-      const word_lst = [" SKIM MILK"];
+      const word_lst = responseJson["ParsedResults"][0]["ParsedText"].replace(/\r?\n/g, ",").split(",");
 
       console.log("word list", word_lst);
       /*
@@ -66,7 +65,7 @@ export default function App() {
           words.forEach(x => {
             filtered_word += " " + x[0].toUpperCase() + x.slice(1);
           });
-          filtered_word = pluralize.singular(filtered_word.slice(1));
+          filtered_word = filtered_word.slice(1);
           // console.log(filtered_word);
           if (await isIngredientInFDA(filtered_word))
             filtered_lst.push(filtered_word);
@@ -181,7 +180,7 @@ export default function App() {
       const name = ingrdnts_lst[i];
       const cookbook_dscrption = await getIngredientDescriptionFromCookbook(name);
       const dscrption = (cookbook_dscrption != null) ? cookbook_dscrption : await getIngredientDescriptionFromWiki(name);
-      if (dscrption != null) {
+      if (dscrption !== null) {
         ingredients_to_description.push({ "name": name, "text": dscrption["text"], "visual": dscrption["visual"], "page_url": dscrption["page_url"] });
       }
     }
@@ -193,13 +192,13 @@ export default function App() {
 
   var content = null;
   if (page == "IngredientsPage") {
-    content = <IngredientsPage toHomePage={setPage} ingrdnts_to_dscrption={ingrdnts_to_dscrption} />;
+    content = <IngredientsPage setPage={setPage} ingrdnts_to_dscrption={ingrdnts_to_dscrption} />;
   }
   else if (page == "CameraPage") {
     content = <CameraPage toIngredientsPage={toIngredientsPage} />;
   }
   else if (page == "HomePage") {
-    content = <Text>Home page</Text>;
+    content = <HomePage setPage={setPage} />;
   }
   return (
     content

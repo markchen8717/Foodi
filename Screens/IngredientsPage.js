@@ -11,7 +11,7 @@ export default function IngredientsPage(props) {
         toggleCollapseAll(!collapse_all);
     }
     handleHomeButton = () => {
-        props.toHomePage("HomePage");
+        props.setPage("HomePage");
     }
 
     return (

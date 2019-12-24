@@ -59,20 +59,6 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         borderColor: "#FFFFFF",
     },
-    // makes the button a bit larger in size when the user taps on the button and by making it bigger, 
-    // we can make sure that the entire button isn't covered by user's finger
-    captureBtnActive: {
-        width: 80,
-        height: 80,
-    },
-    captureBtnInternal: {
-        width: 76,
-        height: 76,
-        borderWidth: 2,
-        borderRadius: 76,
-        backgroundColor: "red",
-        borderColor: "transparent",
-    },
     //horizontally and vertically centers all of an element's children.
     alignCenter: {
         flex: 1,
