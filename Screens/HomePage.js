@@ -4,11 +4,10 @@ import { Image, StyleSheet, Text, View, Button, TextInput, Dimensions, FlatList,
 export default function HomePage(props) {
 
     handleScanButton = () => {
-        console.log("ScanIngredients");
-        props.setPage("CameraPage");
+        props.setPage("ScanIngredientsPage");
     }
     handleSearchButton = () => {
-        console.log("SearchIngredients");
+        props.setPage("SearchIngredientsPage");
     }
 
     return (
