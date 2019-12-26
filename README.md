@@ -1,1 +1,0 @@
-# Ingredients Scanner

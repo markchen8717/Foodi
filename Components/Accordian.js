@@ -1,8 +1,7 @@
 import React, { Component, Dimensions, Fragment } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Image, Button } from "react-native";
+import { Linking, View, TouchableOpacity, Text, StyleSheet, Image, Button } from "react-native";
 import { Colors } from './Colors';
 import Icon from "react-native-vector-icons/MaterialIcons";
-import { Linking } from 'expo';
 
 export default class Accordian extends Component {
     

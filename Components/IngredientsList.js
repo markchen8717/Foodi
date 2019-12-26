@@ -17,7 +17,7 @@ export default function IngredientsList(props) {
                 <Header style={{ backgroundColor: '#40E0D0' }} title="Ingredients Found:" />
             </View>
             <View style={style.content}>
-                <View style={{alignItems:'center'}}>
+                <View style={{alignItems:'center',paddingTop:'2%',}}>
                     <Button title="Collapse All" onPress={handleCollapseAllButton} />
                     {props.ingrdnts_to_dscrption.length == 0 && !props.is_searching && <Text>No Results</Text>}
                     {props.is_searching && <Text >Loading...</Text>}

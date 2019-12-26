@@ -21,8 +21,6 @@ const style = StyleSheet.create({
         alignItems:'center',
         justifyContent:'center',
         overflow: 'hidden'
-        // borderTopStartRadius:20,
-        // borderTopEndRadius:20,
     },
     header_title:{
         color:'black',
