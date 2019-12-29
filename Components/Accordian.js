@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     visual_data: {
+        resizeMode:'contain',
         flexDirection: 'row',
         alignItems: 'center',
         height: 200,

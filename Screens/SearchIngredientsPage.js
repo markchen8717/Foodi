@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Button, Dimensions } from 'react-native';
 import IngredientsList from '../Components/IngredientsList';
 import { SearchBar } from 'react-native-elements';
@@ -14,10 +14,11 @@ var sample_data = [
 
 export default function SearchIngredientsPage(props) {
 
+    const [unfilteredData,setUnfilteredData] = useState([]);
     const [query, setQuery] = useState("");
     const [data, setData] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
-    const [debouncedQuery] = useDebounce(query, 250);
+    const [debouncedQuery] = useDebounce(query, 500);
 
 
     handleHomeButton = async () => {
@@ -25,20 +26,34 @@ export default function SearchIngredientsPage(props) {
     }
 
     updateSearchAsync = async (text) => {
+        console.log("query",query);
         setQuery(text);
     }
 
     useEffect(() => {
+        console.log("debouncedQuery",debouncedQuery);
         myAsyncFunction = async function () {
             setIsSearching(true);
             const searchResults = await getIngredientSearchResultsAsync(debouncedQuery);
             const ingredients_lst = await filterWordListAsync(searchResults);
             const data = await getIngredientsToDescriptionAsync(ingredients_lst);
-            setData(data);
+            let unfilteredDataobj = {};
+            unfilteredDataobj[debouncedQuery] = data;
+            setUnfilteredData(unfilteredDataobj);
             setIsSearching(false);
         };
         myAsyncFunction();
     }, [debouncedQuery]);
+
+    useEffect(()=>{
+        const unfilteredDataQuery = Object.keys(unfilteredData)[0];
+        if(unfilteredDataQuery == query)
+        {
+            setData(unfilteredData[unfilteredDataQuery]);
+        }
+    },[unfilteredData]);
+
+
 
     return (
         <View style={style.container}>
