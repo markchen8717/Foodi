@@ -4,7 +4,10 @@ import SearchIngredientsPage from './Screens/SearchIngredientsPage';
 import ScanIngredientsPage from './Screens/ScanIngredientsPage';
 import HomePage from './Screens/HomePage';
 
+
+
 export default function App() {
+
 
   const [page, setPage] = useState("HomePage");
 

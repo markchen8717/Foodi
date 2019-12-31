@@ -46,6 +46,7 @@ build/
 local.properties
 *.iml
 google-services.json
+android/app/google-services.json
 
 # node.js
 #

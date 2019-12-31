@@ -1,14 +1,15 @@
 import { REACT_APP_FDA_API_KEY } from 'react-native-dotenv';
 import { REACT_APP_FDA_API_URL } from 'react-native-dotenv';
 
-export const isIngredientInFDAAsync = async (ingredient) => {
-    //console.log("checking FDA");
+
+export const getFDAFilteredWordListAsync = async (wordList=[],getRemovedItems = false) => {
     try {
+        const parsedInput = wordList.reduce((a,b,i)=>((i == 0)? b.toLowerCase() : a+','+b.toLowerCase()),"");
         const response = await fetch(REACT_APP_FDA_API_URL + REACT_APP_FDA_API_KEY, {
             body: JSON.stringify({
-                "generalSearchInput": ingredient.toLowerCase(),
+                "generalSearchInput": parsedInput,
                 "includeDataTypeList": ["Foundation", "SR Legacy"],
-                "requireAllWords": "true",
+                "requireAllWords": "false",
             }),
             headers: {
                 "Content-Type": "application/json"
@@ -16,20 +17,16 @@ export const isIngredientInFDAAsync = async (ingredient) => {
             method: "POST"
         })
         const responseJson = await response.json();
-        //console.log(responseJson);
-        const food_obj = responseJson["foods"];
-        //console.log(food_obj);
-
-        for (let i = 0; i < Math.min(20, food_obj.length); i++) {
-            const description_words = food_obj[i]["description"].toLowerCase().split(",");
-            for (let j = 0; j < description_words.length; j++) {
-                if (description_words[j].toLowerCase().trim() == ingredient.toLowerCase())
-                    return true;
-            }
-        }
-        return false;
+        const food_obj_arr = responseJson["foods"];
+        let food_description_words = [];
+        food_obj_arr.forEach(obj => {
+            food_description_words = [...food_description_words, ...obj["description"].toLowerCase().split(",").map(x=>x.trim())];
+        });
+        const filtered_lst = wordList.filter(x=>food_description_words.includes(x.toLowerCase()));
+        const removed_items_lst = wordList.filter(x=>!filtered_lst.includes(x));
+        return (getRemovedItems)? [filtered_lst,removed_items_lst]:filtered_lst;
     } catch (error) {
-        console.error(error);
-        return false;
+        console.log(error);
+        return [];
     }
 }

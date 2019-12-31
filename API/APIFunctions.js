@@ -1,6 +1,6 @@
 import { getIngredientDescriptionFromCookbookAsync, getIngredientDescriptionFromWikiAsync } from './Wiki';
-import { isIngredientInFDAAsync } from './FDA';
-import { isIngredientInUPC } from './UPC';
+import { getFDAFilteredWordListAsync } from './FDA';
+import { isIngredientInUPCAsync } from './UPC';
 
 export const getIngredientsToDescriptionAsync = async (ingrdnts_lst = []) => {
   let ingredients_to_description = [];
@@ -19,7 +19,7 @@ export const getIngredientsToDescriptionAsync = async (ingrdnts_lst = []) => {
   return ingredients_to_description;
 }
 
-export const filterWordListAsync = async (word_lst = []) => {
+export const getFilteredWordListAsync = async (word_lst = []) => {
   /*
       filter
         -ingredient not in FDA
@@ -32,33 +32,22 @@ export const filterWordListAsync = async (word_lst = []) => {
           -Capitalize the first letter of each word
             -Account for ingredients with multiple words
       */
-  let filtered_lst = [];
   try {
-    for (let i = 0; i < Math.min(10, word_lst.length); i++) {
-      if(word_lst.indexOf(word_lst[i]) != i)
-        continue;
-      let filtered_word = word_lst[i].toLowerCase().trim();
-      // console.log("filtered_word",filtered_word);
-      const letters = /^[a-zA-Z\s]*$/;
-      if (filtered_word != "" && filtered_word.length > 1 && letters.test(filtered_word) ) {
-        
-        let words = filtered_word.split(" ");
-        filtered_word = "";
-        words.forEach(x => {
-          filtered_word += " " + x[0].toUpperCase() + x.slice(1);
-        });
-        filtered_word = filtered_word.slice(1);
-        // console.log(filtered_word);
-        // console.log(filtered_word);
+    const charProcessedList = word_lst.map(x => x.toLowerCase().replace(/[^A-Za-z\s]+/g, "").trim()).filter(x => x != "" && x.length > 1);
+    const multiWordsFormattedList = charProcessedList.map((x) => {
+      return x.split(" ").map(x => x.trim()).filter(x => x != "").map(x => x[0].toUpperCase() + x.slice(1)).reduce((a, b, i) => ((i == 0) ? b : a + " " + b), "");
+    });
+    const removedDuplicates = multiWordsFormattedList.filter((x, i) => multiWordsFormattedList.indexOf(x) === i);
+    const [FDAFilteredList, notInFDAList] = await getFDAFilteredWordListAsync(removedDuplicates, true);
 
-        //console.log(await isIngredientInUPC("Disodium Phosphate"));
-        if (await isIngredientInFDAAsync(filtered_word) || await isIngredientInUPC(filtered_word))
-          filtered_lst.push(filtered_word);
-      }
+    let filteredNotInFDAList = [];
+    for (let i = 0; i < notInFDAList.length; i++) {
+      if(await isIngredientInUPCAsync(notInFDAList[i]))
+        filteredNotInFDAList.push(notInFDAList[i]);
     }
-    //console.log("filtered list", filtered_lst);
+    return [...FDAFilteredList, ...filteredNotInFDAList];
   } catch (error) {
     console.log(error);
   }
-  return filtered_lst;
+  return [];
 }

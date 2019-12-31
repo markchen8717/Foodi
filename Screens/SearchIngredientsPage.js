@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Button, Dimensions } from 'react-native';
 import IngredientsList from '../Components/IngredientsList';
 import { SearchBar } from 'react-native-elements';
-import { filterWordListAsync, getIngredientsToDescriptionAsync } from '../API/APIFunctions';
+import { getFilteredWordListAsync, getIngredientsToDescriptionAsync } from '../API/APIFunctions';
 import { getIngredientSearchResultsAsync } from '../API/Wiki';
 import { useDebounce } from "use-debounce";
 
@@ -21,36 +21,39 @@ export default function SearchIngredientsPage(props) {
     const [debouncedQuery] = useDebounce(query, 500);
 
 
-    handleHomeButton = async () => {
+    const handleHomeButton = async () => {
         props.setPage("HomePage");
     }
 
-    updateSearchAsync = async (text) => {
-        console.log("query",query);
+    const updateSearchAsync = async (text) => {
+        //console.log("query",query);
         setQuery(text);
     }
 
     useEffect(() => {
-        console.log("debouncedQuery",debouncedQuery);
-        myAsyncFunction = async function () {
+        //console.log("debounced",debouncedQuery);
+        const myAsyncFunction = async function () {
             setIsSearching(true);
             const searchResults = await getIngredientSearchResultsAsync(debouncedQuery);
-            const ingredients_lst = await filterWordListAsync(searchResults);
+            //console.log(searchResults);
+            const ingredients_lst = await getFilteredWordListAsync(searchResults);
+           //console.log(ingredients_lst);
             const data = await getIngredientsToDescriptionAsync(ingredients_lst);
             let unfilteredDataobj = {};
             unfilteredDataobj[debouncedQuery] = data;
             setUnfilteredData(unfilteredDataobj);
-            setIsSearching(false);
         };
         myAsyncFunction();
     }, [debouncedQuery]);
 
     useEffect(()=>{
+        //console.log(unfilteredData);
         const unfilteredDataQuery = Object.keys(unfilteredData)[0];
         if(unfilteredDataQuery == query)
         {
             setData(unfilteredData[unfilteredDataQuery]);
         }
+        setIsSearching(false);
     },[unfilteredData]);
 
 
