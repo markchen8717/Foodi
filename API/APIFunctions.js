@@ -1,6 +1,7 @@
 import { getIngredientDescriptionFromCookbookAsync, getIngredientDescriptionFromWikiAsync } from './Wiki';
 import { getFDAFilteredWordListAsync } from './FDA';
 import { isIngredientInUPCAsync } from './UPC';
+const nlp=require('compromise');
 
 export const getIngredientsToDescriptionAsync = async (ingrdnts_lst = []) => {
   let ingredients_to_description = [];
@@ -38,6 +39,7 @@ export const getFilteredWordListAsync = async (word_lst = []) => {
       return x.split(" ").map(x => x.trim()).filter(x => x != "").map(x => x[0].toUpperCase() + x.slice(1)).reduce((a, b, i) => ((i == 0) ? b : a + " " + b), "");
     });
     const removedDuplicates = multiWordsFormattedList.filter((x, i) => multiWordsFormattedList.indexOf(x) === i);
+    const removedAdjectives = removedDuplicates.filter(x=>nlp(x).nouns().out()!="");
     const [FDAFilteredList, notInFDAList] = await getFDAFilteredWordListAsync(removedDuplicates, true);
 
     let filteredNotInFDAList = [];

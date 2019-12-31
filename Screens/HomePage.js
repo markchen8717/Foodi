@@ -2,7 +2,7 @@ import React, { useState, Fragment } from 'react';
 import { Image, StyleSheet, Text, View, Button, TextInput, Dimensions, FlatList, ScrollView, ImageBackground, TouchableOpacity, MaskedViewIOS } from 'react-native';
 import {getIngredientUsage} from '../API/Wiki'
 import {getFDAFilteredWordList} from '../API/FDA';
-import {filterWordListAsync} from '../API/APIFunctions';
+import {getFilteredWordListAsync} from '../API/APIFunctions';
 
 export default function HomePage(props) {
 
