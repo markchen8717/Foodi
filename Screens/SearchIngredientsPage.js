@@ -6,55 +6,56 @@ import { getFilteredWordListAsync, getIngredientsToDescriptionAsync } from '../A
 import { getIngredientSearchResultsAsync } from '../API/Wiki';
 import { useDebounce } from "use-debounce";
 
-
-var sample_data = [
-    { 'name': 'Soy Sauce', 'text': 'A Chinese sauce', 'visual': "https://media.wired.com/photos/598e35fb99d76447c4eb1f28/master/pass/phonepicutres-TA.jpg", 'page_url': "https://google.ca" },
-
-];
-
 export default function SearchIngredientsPage(props) {
 
-    const [unfilteredData,setUnfilteredData] = useState([]);
+    const [unfilteredData, setUnfilteredData] = useState([]);
     const [query, setQuery] = useState("");
     const [data, setData] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [debouncedQuery] = useDebounce(query, 500);
+    const [unmount, setUnmount] = useState(false);
 
 
     const handleHomeButton = async () => {
         props.setPage("HomePage");
+        setUnmount(true);
     }
 
     const updateSearchAsync = async (text) => {
-        //console.log("query",query);
+        setUnmount(false);
         setQuery(text);
     }
 
+    useEffect(()=>{
+        setIsSearching(false);
+    },[data]);
+
     useEffect(() => {
-        //console.log("debounced",debouncedQuery);
+        console.log("debounced", debouncedQuery);
         const myAsyncFunction = async function () {
             setIsSearching(true);
-            const searchResults = await getIngredientSearchResultsAsync(debouncedQuery);
-            //console.log(searchResults);
-            const ingredients_lst = await getFilteredWordListAsync(searchResults);
-           //console.log(ingredients_lst);
-            const data = await getIngredientsToDescriptionAsync(ingredients_lst);
-            let unfilteredDataobj = {};
-            unfilteredDataobj[debouncedQuery] = data;
-            setUnfilteredData(unfilteredDataobj);
+            const search_results = await getIngredientSearchResultsAsync(debouncedQuery);
+            console.log("wiki search results", search_results);
+            const ingredients_lst = await getFilteredWordListAsync(search_results);
+            console.log("filtered list", ingredients_lst);
+            const api_data = await getIngredientsToDescriptionAsync(ingredients_lst);
+            let unfiltered_data_obj = {};
+            unfiltered_data_obj[debouncedQuery] = api_data;
+            setUnfilteredData(unfiltered_data_obj);
         };
-        myAsyncFunction();
+        if (!unmount)
+            myAsyncFunction();
     }, [debouncedQuery]);
 
-    useEffect(()=>{
+    useEffect(() => {
         //console.log(unfilteredData);
-        const unfilteredDataQuery = Object.keys(unfilteredData)[0];
-        if(unfilteredDataQuery == query)
-        {
-            setData(unfilteredData[unfilteredDataQuery]);
+        if (!unmount) {
+            const unfiltered_data_query = Object.keys(unfilteredData)[0];
+            if (unfiltered_data_query == query) {
+                setData(unfilteredData[unfiltered_data_query]);
+            }
         }
-        setIsSearching(false);
-    },[unfilteredData]);
+    }, [unfilteredData]);
 
 
 

@@ -4,22 +4,27 @@ import IngredientsList from '../Components/IngredientsList';
 import { getFilteredWordListAsync, getIngredientsToDescriptionAsync } from '../API/APIFunctions';
 import { RNCamera } from 'react-native-camera';
 import FillToAspectRatio from '../Components/FillToAspectRatio';
-import ViewFinder from 'react-native-view-finder'
+import ViewFinder from 'react-native-view-finder';
+import { getIngredientsListFromBarcodeAsync } from '../API/OFF';
+import { useDebounce } from "use-debounce";
 
 export default function ScanIngredientsPage(props) {
 
     const [scannedWords, setScannedWords] = useState(new Set([]));
+    const [scannedBarcodes, setScannedBarcodes] = useState(new Set([]));
+    const [detecingBarcode, setDectectingBarcode] = useState(true);
     const [scanner, setScanner] = useState(false);
     const [textBlocks, setTextBlocks] = useState([]);
     const [barcodes, setBarcodes] = useState([]);
     const [torch, setTorch] = useState(false);
     const [displayData, setDisplayData] = useState([]);
-    const [newIngredients, setNewIngredients] = useState([]);
+    const [potentialNewIngredients, setPotentialNewIngredients] = useState([]);
     const [newDisplayData, setNewDisplayData] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [viewFinderWidth, setViewFinderWidth] = useState(0);
     const [viewFinderHeight, setViewFinderHeight] = useState(0);
     const [unmount, setUnmount] = useState(false);
+
 
     const handleHomeButton = async () => {
         setUnmount(true);
@@ -28,50 +33,120 @@ export default function ScanIngredientsPage(props) {
         props.setPage("HomePage");
     };
 
-    useEffect(()=>{
-        const missing_data = newDisplayData.filter(x=>!displayData.map(x=>x.name).includes(x.name));
-        if(!unmount)
-            setDisplayData([...displayData,...missing_data]);
-    },[newDisplayData]);
+    useEffect(() => {
+        if (isSearching == false) { 
+            setTextBlocks([]);
+            setBarcodes([]);
+        }
+    }, [isSearching]);
+
+    useEffect(() => {
+        if (!unmount && displayData.length > 0) {
+            setIsSearching(false);
+        }
+    }, [displayData]);
+
+    useEffect(() => {
+        if (!unmount && newDisplayData.length > 0) {
+            setDisplayData([...displayData, ...newDisplayData]);
+        }
+    }, [newDisplayData]);
 
     useEffect(() => {
         const myAsyncFunction = async function () {
+
             const ingredients_shown = displayData.map(x => x.name);
-            const missing_ingredients = newIngredients.filter(x => !ingredients_shown.includes(x));
-            if (missing_ingredients.length > 0 && !unmount) {
-                setIsSearching(true);
+            const missing_ingredients = potentialNewIngredients.filter(x => !ingredients_shown.includes(x));
+            //checking unmount state before firing each setState and async function
+            let foundNewDisplayData = false;
+            if (!unmount && missing_ingredients.length > 0) {
+                console.log("missing_ingredients", missing_ingredients);
                 const new_data = await getIngredientsToDescriptionAsync(missing_ingredients);
-                setNewDisplayData(new_data);
-                setIsSearching(false);
+                if (!unmount && new_data.length > 0) {
+                    foundNewDisplayData = true;
+                    setNewDisplayData(new_data);
+                }
             }
+            if (!unmount && !foundNewDisplayData)
+                setIsSearching(false);
         }
-        if (!unmount)
+        if (!unmount && potentialNewIngredients.length > 0)
             myAsyncFunction();
-    }, [newIngredients]);
+    }, [potentialNewIngredients]);
 
     useEffect(() => {
         const myAsyncFunction = async function () {
             let word_lst = [];
             for (let i = 0; i < textBlocks.length; i++) {
                 const words1 = textBlocks[i].value.trim().split(",");
-                const words2 = textBlocks[i].value.trim().split(" ");
+                const words2 = textBlocks[i].value.trim().split(/[ ,]+/);
                 word_lst = [...word_lst, ...words1, ...words2];
             }
             const processed_word_lst = word_lst.filter(x => !scannedWords.has(x));
+            //console.log("scanned word list",processed_word_lst);
 
-            if (!unmount) {
-                const filtered_lst = await getFilteredWordListAsync(processed_word_lst);
+            let foundPotentialNewIngredients = false;
+            if (!unmount && processed_word_lst.length > 0) {
                 setScannedWords(new Set([...scannedWords, ...processed_word_lst]));
-                setNewIngredients(filtered_lst);
+                const filtered_lst = await getFilteredWordListAsync(processed_word_lst);
+                if (!unmount && filtered_lst.length > 0) {
+                    console.log("filtered lst:", filtered_lst);
+                    setPotentialNewIngredients(filtered_lst);
+                    foundPotentialNewIngredients = true;
+                }
             }
+            if (!foundPotentialNewIngredients && !unmount)
+                setIsSearching(false);
+
         }
-        if (!unmount)
+        if (!unmount && textBlocks.length > 0) {
+            setIsSearching(true);
             myAsyncFunction();
+        }
     }, [textBlocks]);
 
+
+    useEffect(() => {
+        const myAsyncFunction = async function () {
+            let ingredients_list = [];
+            for (let i = 0; i < barcodes.length && !unmount; i++) {
+                const ingredients = await getIngredientsListFromBarcodeAsync(barcodes[i].data);
+                ingredients_list = [...ingredients_list, ...ingredients];
+            }
+
+            let foundPotentialNewIngredients = false;
+            if (!unmount && ingredients_list.length > 0) {
+                const filtered_lst = await getFilteredWordListAsync(ingredients_list);
+                if (!unmount && filtered_lst.length > 0) {
+                    setPotentialNewIngredients(filtered_lst);
+                    foundPotentialNewIngredients = true;
+                }
+            }
+            if (!unmount && !foundPotentialNewIngredients) {
+                setIsSearching(false);
+            }
+
+        }
+        if (!unmount && barcodes.length > 0) {
+            setIsSearching(true);
+            myAsyncFunction();
+        }
+
+    }, [barcodes]);
+
+
+
     const handleBarCodeRead = (obj) => {
-        if (!unmount)
-            setBarcodes(obj["barcodes"]);
+        if (isSearching)
+            return;
+        const barcodes_obj = obj["barcodes"];
+        //cap it to one barcode at a time for now, although muliple barcodes at once is supported
+        const new_barcodes = (barcodes_obj.length > 0) ? [barcodes_obj[0]] : [];
+        const filtered_barcodes = new_barcodes.filter(x => !scannedBarcodes.has(x.data));
+        if (!unmount) {
+            setBarcodes(filtered_barcodes);
+            setScannedBarcodes(new Set([...scannedBarcodes, ...filtered_barcodes.map(x => x.data)]));
+        }
     };
 
     const renderBarcodes = () => (
@@ -104,9 +179,13 @@ export default function ScanIngredientsPage(props) {
     };
 
     const handleTextRead = (obj) => {
+        if (isSearching)
+            return;
         const text_blocks_obj_arr = obj["textBlocks"];
-        const filtered_text_blocks = text_blocks_obj_arr.filter(x => !scannedWords.has(x.value));
-        if (!unmount) {
+        //cap to one text block at a time, although multiple text blocks at once is supported
+        const new_text_blocks = (text_blocks_obj_arr.length > 0) ? [text_blocks_obj_arr[0]] : [];
+        const filtered_text_blocks = new_text_blocks.filter(x => !scannedWords.has(x.value));
+        if (!unmount && filtered_text_blocks.length > 0) {
             setScannedWords(new Set([...scannedWords, ...filtered_text_blocks.map(x => x.value)]));
             setTextBlocks(filtered_text_blocks);
         }
@@ -144,7 +223,7 @@ export default function ScanIngredientsPage(props) {
             <View style={style.navBar}>
                 <Button title="Home" onPress={handleHomeButton} />
                 {scanner &&
-                    <View stlye={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                    <View stlye={style.navSwitch}>
                         <Text>TORCH:</Text>
                         <Switch
                             value={torch}
@@ -152,7 +231,22 @@ export default function ScanIngredientsPage(props) {
                         />
                     </View>
                 }
-                <View stlye={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                {scanner &&
+                    <View stlye={style.navSwitch}>
+                        <Text>DETECTING:</Text>
+                        <View style={{ flexDirection: 'row' }}>
+                            <Switch
+                                value={detecingBarcode}
+                                onChange={() => setDectectingBarcode(!detecingBarcode)}
+                                trackColor={{ false: 'grey', true: 'grey' }}
+                                thumbColor='green'
+                            />
+                            {detecingBarcode && <Text>BARCODES</Text>}
+                            {!detecingBarcode && <Text>TEXT</Text>}
+                        </View>
+                    </View>
+                }
+                <View stlye={style.navSwitch}>
                     <Text>SCANNER:</Text>
                     <Switch
                         value={scanner}
@@ -164,7 +258,7 @@ export default function ScanIngredientsPage(props) {
                 <View style={style.camera} onLayout={(event) => measureViewFinderDimensions(event)} >
                     <FillToAspectRatio style={style.camera}>
                         <RNCamera
-                            autoFocus={RNCamera.Constants.AutoFocus.on}
+                            autoFocus='on'
                             // autoFocusPointOfInterest={{ x: 0.5, y: 0.5 }}
                             captureAudio={false}
                             onFacesDetected={null}
@@ -179,9 +273,9 @@ export default function ScanIngredientsPage(props) {
                                 buttonNegative: 'Cancel',
                             }}
                             onBarCodeRead={null}
-                            onGoogleVisionBarcodesDetected={(scanner) ? handleBarCodeRead : null}
-                            googleVisionBarcodeType={(scanner) ? RNCamera.Constants.GoogleVisionBarcodeDetection.BarcodeType.ALL : null}
-                            onTextRecognized={(scanner) ? handleTextRead : null}
+                            onGoogleVisionBarcodesDetected={(scanner && detecingBarcode) ? handleBarCodeRead : null}
+                            googleVisionBarcodeType={(scanner && detecingBarcode) ? RNCamera.Constants.GoogleVisionBarcodeDetection.BarcodeType.ALL : null}
+                            onTextRecognized={(scanner && !detecingBarcode) ? handleTextRead : null}
                         >
                             <ViewFinder backgroundColor="transparent" loading={isSearching} height={viewFinderHeight} width={viewFinderWidth} />
                             {renderTextBlocks()}
@@ -199,18 +293,6 @@ export default function ScanIngredientsPage(props) {
 
 const { width: winWidth, height: winHeight } = Dimensions.get('window');
 const style = StyleSheet.create({
-    navBar: {
-        paddingLeft: '2.5%',
-        paddingRight: '2.5%',
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        flex: 1.3,
-        backgroundColor: 'white',
-        borderTopEndRadius: 20,
-        borderTopStartRadius: 20,
-        overflow: 'hidden',
-    },
     container: {
         display: 'flex',
         flexDirection: "column",
@@ -220,8 +302,24 @@ const style = StyleSheet.create({
         paddingLeft: '2.5%',
         paddingRight: '2.5%',
         paddingTop: '2.5%',
-        backgroundColor: '#FFA07A',
+        backgroundColor: 'green',
         overflow: 'hidden',
+    },
+    navBar: {
+        paddingLeft: '2.5%',
+        paddingRight: '2.5%',
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flex: 1.75,
+        backgroundColor: 'white',
+        borderTopEndRadius: 20,
+        borderTopStartRadius: 20,
+    },
+    navSwitch: {
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     camera: {
         height: "100%",

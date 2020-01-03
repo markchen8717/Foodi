@@ -22,10 +22,13 @@ const getProcessedURL = (url = "") => {
     return ((url.includes("http")) ? url : "https:" + url);
 }
 
-export const getIngredientSearchResultsAsync = async (ingredient) => {
+export const getIngredientSearchResultsAsync = async (ingredient="") => {
     try {
         const responseJson = await (await fetch(REACT_APP_WIKI_SEARCH_URL + ingredient)).json();
-        return (responseJson[1]);
+        if(Array.isArray(responseJson) && responseJson.length>=2)
+            return responseJson[1];
+        else
+            return [];
     } catch (error) {
         console.log(error);
         return [];
@@ -50,8 +53,11 @@ export const getIngredientDescriptionFromWikiAsync = async (ingredient) => {
             img_url = null;
         }
         const ingredientUsageText = await getIngredientUsageAsync(ingredient);
-        const text = (ingredientUsageText != null) ? ingredientUsageText : page_id_obj["extract"].replace("\n", " ");
-        return { "text": getTruncatedText(text, 250), "visual": img_url, "page_url": page_url };
+        let text = (ingredientUsageText != null) ? ingredientUsageText : page_id_obj["extract"].replace("\n", " ").trim();
+        text = getTruncatedText(text, 250);
+        if(text == "")
+            return null;
+        return { "text": text, "visual": img_url, "page_url": page_url };
     } catch (error) {
         console.log(error);
         return null;
@@ -60,7 +66,7 @@ export const getIngredientDescriptionFromWikiAsync = async (ingredient) => {
 
 export const getIngredientUsageAsync = async (ingredient) => {
     try {
-        const parsedInput = ingredient.toLowerCase().replace(" ", "_");
+        const parsedInput = ingredient.toLowerCase().trim().replace(" ", "_");
         const response = await fetch(REACT_APP_WIKI_SECTION_QUERY_URL + parsedInput);
         const responseJson = await response.json();
         const sections = responseJson["parse"]["sections"];
