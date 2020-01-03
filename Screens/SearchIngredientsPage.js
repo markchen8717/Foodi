@@ -8,7 +8,7 @@ import { useDebounce } from "use-debounce";
 
 export default function SearchIngredientsPage(props) {
 
-    const [unfilteredData, setUnfilteredData] = useState([]);
+    const [unfilteredData, setUnfilteredData] = useState({});
     const [query, setQuery] = useState("");
     const [data, setData] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -17,43 +17,53 @@ export default function SearchIngredientsPage(props) {
 
 
     const handleHomeButton = async () => {
-        props.setPage("HomePage");
         setUnmount(true);
+        props.setPage("HomePage");
     }
 
     const updateSearchAsync = async (text) => {
-        setUnmount(false);
-        setQuery(text);
+        if (!unmount) {
+            setQuery(text);
+        }
     }
 
-    useEffect(()=>{
-        setIsSearching(false);
-    },[data]);
+    useEffect(() => {
+        if (!unmount)
+            setIsSearching(false);
+    }, [data]);
 
     useEffect(() => {
         console.log("debounced", debouncedQuery);
         const myAsyncFunction = async function () {
-            setIsSearching(true);
+            let foundData = false;
             const search_results = await getIngredientSearchResultsAsync(debouncedQuery);
             console.log("wiki search results", search_results);
-            const ingredients_lst = await getFilteredWordListAsync(search_results);
-            console.log("filtered list", ingredients_lst);
-            const api_data = await getIngredientsToDescriptionAsync(ingredients_lst);
-            let unfiltered_data_obj = {};
-            unfiltered_data_obj[debouncedQuery] = api_data;
-            setUnfilteredData(unfiltered_data_obj);
-        };
-        if (!unmount)
+            if (!unmount && search_results.length > 0 && debouncedQuery == query) {
+                const ingredients_lst = await getFilteredWordListAsync(search_results);
+                console.log("filtered list", ingredients_lst);
+                if (!unmount && ingredients_lst.length > 0 && debouncedQuery == query) {
+                    const api_data = await getIngredientsToDescriptionAsync(ingredients_lst);
+                    if (!unmount && api_data.length > 0 && debouncedQuery == query) {
+                        foundData = true;
+                        let unfiltered_data_obj = {};
+                        unfiltered_data_obj[debouncedQuery] = api_data;
+                        setUnfilteredData(unfiltered_data_obj);
+                    }
+                }
+            }
+            if (!foundData && !unmount)
+                setIsSearching(false);
+        }
+        if (!unmount && debouncedQuery == query) {
+            setIsSearching(true);
             myAsyncFunction();
+        }
     }, [debouncedQuery]);
 
     useEffect(() => {
-        //console.log(unfilteredData);
-        if (!unmount) {
-            const unfiltered_data_query = Object.keys(unfilteredData)[0];
-            if (unfiltered_data_query == query) {
-                setData(unfilteredData[unfiltered_data_query]);
-            }
+        const unfiltered_data_query = Object.keys(unfilteredData)[0];
+        if (!unmount && unfiltered_data_query == query) {
+            setData(unfilteredData[unfiltered_data_query]);
         }
     }, [unfilteredData]);
 
@@ -100,11 +110,10 @@ const style = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        flex: 1,
+        flex: 1.25,
         backgroundColor: 'white',
         borderTopEndRadius: 20,
         borderTopStartRadius: 20,
-        overflow: 'hidden',
     },
     ingredients_lst: {
         flex: 10,

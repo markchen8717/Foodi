@@ -34,20 +34,21 @@ export default function ScanIngredientsPage(props) {
     };
 
     useEffect(() => {
-        if (isSearching == false) { 
+        if (!unmount && isSearching == false) { 
             setTextBlocks([]);
             setBarcodes([]);
         }
     }, [isSearching]);
 
     useEffect(() => {
-        if (!unmount && displayData.length > 0) {
+        if (!unmount ) {
             setIsSearching(false);
         }
     }, [displayData]);
 
     useEffect(() => {
         if (!unmount && newDisplayData.length > 0) {
+            console.log("new display data names", newDisplayData.map(x=>x.name));
             setDisplayData([...displayData, ...newDisplayData]);
         }
     }, [newDisplayData]);
@@ -143,7 +144,7 @@ export default function ScanIngredientsPage(props) {
         //cap it to one barcode at a time for now, although muliple barcodes at once is supported
         const new_barcodes = (barcodes_obj.length > 0) ? [barcodes_obj[0]] : [];
         const filtered_barcodes = new_barcodes.filter(x => !scannedBarcodes.has(x.data));
-        if (!unmount) {
+        if (!unmount && filtered_barcodes.length > 0) {
             setBarcodes(filtered_barcodes);
             setScannedBarcodes(new Set([...scannedBarcodes, ...filtered_barcodes.map(x => x.data)]));
         }
@@ -173,7 +174,6 @@ export default function ScanIngredientsPage(props) {
     );
 
     const measureViewFinderDimensions = (event) => {
-        setUnmount(false);
         setViewFinderHeight(parseInt(0.90 * parseFloat(event.nativeEvent.layout.height)));
         setViewFinderWidth(parseInt(0.95 * parseFloat(event.nativeEvent.layout.width)));
     };
@@ -224,7 +224,7 @@ export default function ScanIngredientsPage(props) {
                 <Button title="Home" onPress={handleHomeButton} />
                 {scanner &&
                     <View stlye={style.navSwitch}>
-                        <Text>TORCH:</Text>
+                        <Text style={[style.navBarText,{backgroundColor:'yellow'}]}>TORCH:</Text>
                         <Switch
                             value={torch}
                             onChange={() => setTorch(!torch)}
@@ -233,7 +233,7 @@ export default function ScanIngredientsPage(props) {
                 }
                 {scanner &&
                     <View stlye={style.navSwitch}>
-                        <Text>DETECTING:</Text>
+                        <Text style={style.navBarText}>DETECTING:</Text>
                         <View style={{ flexDirection: 'row' }}>
                             <Switch
                                 value={detecingBarcode}
@@ -241,13 +241,13 @@ export default function ScanIngredientsPage(props) {
                                 trackColor={{ false: 'grey', true: 'grey' }}
                                 thumbColor='green'
                             />
-                            {detecingBarcode && <Text>BARCODES</Text>}
-                            {!detecingBarcode && <Text>TEXT</Text>}
+                            {detecingBarcode && <Text style={style.navBarText}>BARCODES</Text>}
+                            {!detecingBarcode && <Text style={style.navBarText}>TEXT</Text>}
                         </View>
                     </View>
                 }
                 <View stlye={style.navSwitch}>
-                    <Text>SCANNER:</Text>
+                    <Text style={style.navBarText}>SCANNER:</Text>
                     <Switch
                         value={scanner}
                         onChange={() => { setScanner(!scanner); setTorch(false); }}
@@ -320,6 +320,9 @@ const style = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center'
+    },
+    navBarText:{
+        fontSize:11,
     },
     camera: {
         height: "100%",

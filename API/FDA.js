@@ -49,7 +49,7 @@ export const getFDAFilteredWordListAsync = async (wordList = [], getRemovedItems
         const removed_items_lst = wordList.filter(x => !filtered_lst.includes(x));
         return (getRemovedItems) ? [filtered_lst, removed_items_lst] : filtered_lst;
     } catch (error) {
-        console.log(error);
+        console.log("getFDAFilteredWordListAsync",error);
         return (getRemovedItems) ? [[], []] : [];
     }
 }

@@ -6,7 +6,7 @@ export const isIngredientInUPCAsync = async (ingredient) => {
         const responseText = await response.text();
         return !responseText.includes("Error 404");
     } catch (error) {
-        console.log(error);
+        console.log("isIngredientInUPCAsync",error);
         return false;
     }
 

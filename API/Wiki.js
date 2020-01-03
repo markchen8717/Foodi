@@ -30,7 +30,7 @@ export const getIngredientSearchResultsAsync = async (ingredient="") => {
         else
             return [];
     } catch (error) {
-        console.log(error);
+        console.log("getIngredientSearchResultsAsync",error);
         return [];
     }
 }
@@ -59,7 +59,7 @@ export const getIngredientDescriptionFromWikiAsync = async (ingredient) => {
             return null;
         return { "text": text, "visual": img_url, "page_url": page_url };
     } catch (error) {
-        console.log(error);
+        console.log("getIngredientDescriptionFromWikiAsync",error);
         return null;
     }
 }
@@ -85,7 +85,7 @@ export const getIngredientUsageAsync = async (ingredient) => {
         const html = sectionParseResponseJson["parse"]["text"]["*"];
         return cheerio.load(html).text().replace(section_title + "[edit]", "").replace("\n", " ").trim();
     } catch (error) {
-        console.log(error);
+        console.log("getIngredientUsageAsync",error);
         return null;
     }
 }
@@ -121,7 +121,7 @@ export const getIngredientDescriptionFromCookbookAsync = async (ingredient) => {
         text = text.slice(text.indexOf("\n", text.lastIndexOf("|"))).replace("\n", " ").trim();
         return { "text": getTruncatedText(text, 250), "visual": img_url, "page_url": page_url };
     } catch (error) {
-        console.log(error);
+        console.log("getIngredientDescriptionFromCookbookAsync",error);
         return null;
     }
 }

@@ -15,7 +15,7 @@ export const getIngredientsToDescriptionAsync = async (ingrdnts_lst = []) => {
       }
     }
   } catch (error) {
-    console.log(error);
+    console.log("getIngredientsToDescriptionAsync",error);
   }
   return ingredients_to_description;
 }
@@ -51,7 +51,7 @@ export const getFilteredWordListAsync = async (word_lst = []) => {
     }
     return [...FDAFilteredList, ...filteredNotInFDAList];
   } catch (error) {
-    console.log(error);
+    console.log("getFilteredWordListAsync",error);
   }
   return [];
 }

@@ -20,7 +20,7 @@ export const getIngredientsListFromBarcodeAsync = async (barcode = "") => {
         return ingredientsList;
 
     } catch (error) {
-        console.log(error);
+        console.log("getIngredientsListFromBarcodeAsync",error);
         return [];
     }
 
