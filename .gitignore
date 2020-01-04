@@ -48,6 +48,8 @@ local.properties
 google-services.json
 android/app/google-services.json
 firebase.json
+android/gradle.properties
+
 
 # node.js
 #
