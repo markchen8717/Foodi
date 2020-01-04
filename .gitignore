@@ -47,6 +47,7 @@ local.properties
 *.iml
 google-services.json
 android/app/google-services.json
+firebase.json
 
 # node.js
 #

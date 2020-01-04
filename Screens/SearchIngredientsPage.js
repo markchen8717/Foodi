@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import { StyleSheet, Text, View, Button, Dimensions } from 'react-native';
 import IngredientsList from '../Components/IngredientsList';
 import { SearchBar } from 'react-native-elements';
 import { getFilteredWordListAsync, getIngredientsToDescriptionAsync } from '../API/APIFunctions';
 import { getIngredientSearchResultsAsync } from '../API/Wiki';
 import { useDebounce } from "use-debounce";
+import Ad from '../Components/Ad'
 
 export default function SearchIngredientsPage(props) {
 
@@ -70,38 +71,43 @@ export default function SearchIngredientsPage(props) {
 
 
     return (
-        <View style={style.container}>
-            <View style={style.navBar}>
-                <Button title="Home" onPress={handleHomeButton} />
-            </View>
+        <Fragment>
+            <View style={style.container}>
+                <View style={style.navBar}>
+                    <Button title="Home" onPress={handleHomeButton} />
+                </View>
 
-            <SearchBar
-                placeholder="Type Here..."
-                onChangeText={updateSearchAsync}
-                lightTheme round
-                value={query}
-                style={{ height: "100%", width: "100%" }}
-                showLoading={isSearching}
-            />
+                <SearchBar
+                    placeholder="Type Here..."
+                    onChangeText={updateSearchAsync}
+                    lightTheme round
+                    value={query}
+                    style={{ height: "100%", width: "100%" }}
+                    showLoading={isSearching}
+                />
 
-            <View style={style.ingredients_lst}>
-                <IngredientsList is_searching={isSearching} ingrdnts_to_dscrption={data} />
+                <View style={style.ingredients_lst}>
+                    <IngredientsList instructions={instructions} is_searching={isSearching} ingrdnts_to_dscrption={data} />
+                </View>
             </View>
-        </View>
+            <View style={style.bannerAd} >
+                <Ad adConsentStatus = {props.adConsentStatus} adType='banner'/>
+            </View>
+        </Fragment>
     );
 }
+
+const instructions = ``;
 
 const { width: winWidth, height: winHeight } = Dimensions.get('window');
 const style = StyleSheet.create({
     container: {
         display: 'flex',
+        flex:10,
         flexDirection: "column",
         height: winHeight,
         width: winWidth,
-        paddingBottom: '5%',
-        paddingLeft: '2.5%',
-        paddingRight: '2.5%',
-        paddingTop: '2.5%',
+        padding: '1.5%',
         backgroundColor: '#FFA07A',
         overflow: 'hidden',
     }, navBar: {
@@ -110,7 +116,7 @@ const style = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        flex: 1.25,
+        flex: 1.5,
         backgroundColor: 'white',
         borderTopEndRadius: 20,
         borderTopStartRadius: 20,
@@ -120,5 +126,9 @@ const style = StyleSheet.create({
         borderBottomStartRadius: 20,
         borderBottomEndRadius: 20,
         overflow: 'hidden',
+    },
+    bannerAd: {
+        flex: 1,
+        backgroundColor: '#FFA07A',
     }
 });

@@ -6,7 +6,7 @@ import { RNCamera } from 'react-native-camera';
 import FillToAspectRatio from '../Components/FillToAspectRatio';
 import ViewFinder from 'react-native-view-finder';
 import { getIngredientsListFromBarcodeAsync } from '../API/OFF';
-import { useDebounce } from "use-debounce";
+import Ad from '../Components/Ad'
 
 export default function ScanIngredientsPage(props) {
 
@@ -21,10 +21,11 @@ export default function ScanIngredientsPage(props) {
     const [potentialNewIngredients, setPotentialNewIngredients] = useState([]);
     const [newDisplayData, setNewDisplayData] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
-    const [viewFinderWidth, setViewFinderWidth] = useState(0);
-    const [viewFinderHeight, setViewFinderHeight] = useState(0);
+    const [viewFinderDimension, setViewFinderDimension] = useState({});
+    // const [bannerAdDimension, setBannerAdDimension] = useState({ width: 0, height: 0 });
     const [unmount, setUnmount] = useState(false);
 
+    // useEffect(() => { console.log(bannerAdDimension) }, [bannerAdDimension]);
 
     const handleHomeButton = async () => {
         setUnmount(true);
@@ -34,21 +35,21 @@ export default function ScanIngredientsPage(props) {
     };
 
     useEffect(() => {
-        if (!unmount && isSearching == false) { 
+        if (!unmount && isSearching == false) {
             setTextBlocks([]);
             setBarcodes([]);
         }
     }, [isSearching]);
 
     useEffect(() => {
-        if (!unmount ) {
+        if (!unmount) {
             setIsSearching(false);
         }
     }, [displayData]);
 
     useEffect(() => {
         if (!unmount && newDisplayData.length > 0) {
-            console.log("new display data names", newDisplayData.map(x=>x.name));
+            console.log("new display data names", newDisplayData.map(x => x.name));
             setDisplayData([...displayData, ...newDisplayData]);
         }
     }, [newDisplayData]);
@@ -160,7 +161,7 @@ export default function ScanIngredientsPage(props) {
         <Fragment key={data + bounds.origin.x}>
             <View
                 style={[
-                    style.text,
+                    style.MLKitText,
                     {
                         ...bounds.size,
                         left: bounds.origin.x,
@@ -174,9 +175,12 @@ export default function ScanIngredientsPage(props) {
     );
 
     const measureViewFinderDimensions = (event) => {
-        setViewFinderHeight(parseInt(0.90 * parseFloat(event.nativeEvent.layout.height)));
-        setViewFinderWidth(parseInt(0.95 * parseFloat(event.nativeEvent.layout.width)));
+        setViewFinderDimension({ "height": parseInt(0.90 * parseFloat(event.nativeEvent.layout.height)), "width": parseInt(0.95 * parseFloat(event.nativeEvent.layout.width)) });
     };
+
+    // const measureBannerAdDimensions = (event) => {
+    //     setBannerAdDimension({ "height": parseInt(0.90 * parseFloat(event.nativeEvent.layout.height)), "width": parseInt(0.95 * parseFloat(event.nativeEvent.layout.width)) });
+    // }
 
     const handleTextRead = (obj) => {
         if (isSearching)
@@ -206,7 +210,7 @@ export default function ScanIngredientsPage(props) {
                 </Text>
                 <View
                     style={[
-                        style.text,
+                        style.MLKitText,
                         {
                             ...bounds.size,
                             left: bounds.origin.x,
@@ -219,89 +223,95 @@ export default function ScanIngredientsPage(props) {
     };
 
     return (
-        <View style={style.container}>
-            <View style={style.navBar}>
-                <Button title="Home" onPress={handleHomeButton} />
-                {scanner &&
+        <Fragment>
+            <View style={style.container}>
+                <View style={style.navBar}>
+                    <Button title="Home" onPress={handleHomeButton} />
+                    {scanner &&
+                        <View stlye={style.navSwitch}>
+                            <Text style={[style.navBarText, { backgroundColor: 'yellow' }]}>TORCH:</Text>
+                            <Switch
+                                value={torch}
+                                onChange={() => setTorch(!torch)}
+                            />
+                        </View>
+                    }
+                    {scanner &&
+                        <View stlye={style.navSwitch}>
+                            <Text style={style.navBarText}>DETECTING:</Text>
+                            <View style={{ flexDirection: 'row' }}>
+                                <Switch
+                                    value={detecingBarcode}
+                                    onChange={() => setDectectingBarcode(!detecingBarcode)}
+                                    trackColor={{ false: 'grey', true: 'grey' }}
+                                    thumbColor='green'
+                                />
+                                {detecingBarcode && <Text style={[style.navBarText, { color: 'blue' }]}>BARCODES</Text>}
+                                {!detecingBarcode && <Text style={[style.navBarText, { color: 'blue' }]}>TEXT</Text>}
+                            </View>
+                        </View>
+                    }
                     <View stlye={style.navSwitch}>
-                        <Text style={[style.navBarText,{backgroundColor:'yellow'}]}>TORCH:</Text>
+                        <Text style={style.navBarText}>SCANNER:</Text>
                         <Switch
-                            value={torch}
-                            onChange={() => setTorch(!torch)}
+                            value={scanner}
+                            onChange={() => { setScanner(!scanner); setTorch(false); }}
                         />
                     </View>
-                }
+                </View>
                 {scanner &&
-                    <View stlye={style.navSwitch}>
-                        <Text style={style.navBarText}>DETECTING:</Text>
-                        <View style={{ flexDirection: 'row' }}>
-                            <Switch
-                                value={detecingBarcode}
-                                onChange={() => setDectectingBarcode(!detecingBarcode)}
-                                trackColor={{ false: 'grey', true: 'grey' }}
-                                thumbColor='green'
-                            />
-                            {detecingBarcode && <Text style={style.navBarText}>BARCODES</Text>}
-                            {!detecingBarcode && <Text style={style.navBarText}>TEXT</Text>}
-                        </View>
+                    <View style={style.camera} onLayout={(event) => measureViewFinderDimensions(event)} >
+                        <FillToAspectRatio style={style.camera}>
+                            <RNCamera
+                                autoFocus='on'
+                                // autoFocusPointOfInterest={{ x: 0.5, y: 0.5 }}
+                                captureAudio={false}
+                                onFacesDetected={null}
+                                style={style.camera}
+
+                                type={RNCamera.Constants.Type.back}
+                                flashMode={torch ? RNCamera.Constants.FlashMode.torch : RNCamera.Constants.FlashMode.off}
+                                androidCameraPermissionOptions={{
+                                    title: 'Permission to use camera',
+                                    message: 'We need your permission to use your camera',
+                                    buttonPositive: 'Ok',
+                                    buttonNegative: 'Cancel',
+                                }}
+                                onBarCodeRead={null}
+                                onGoogleVisionBarcodesDetected={(scanner && detecingBarcode) ? handleBarCodeRead : null}
+                                googleVisionBarcodeType={(scanner && detecingBarcode) ? RNCamera.Constants.GoogleVisionBarcodeDetection.BarcodeType.ALL : null}
+                                onTextRecognized={(scanner && !detecingBarcode) ? handleTextRead : null}
+                            >
+                                <ViewFinder backgroundColor="transparent" loading={isSearching} height={viewFinderDimension["height"]} width={viewFinderDimension["width"]} />
+                                {renderTextBlocks()}
+                                {renderBarcodes()}
+                            </RNCamera>
+                        </FillToAspectRatio>
                     </View>
                 }
-                <View stlye={style.navSwitch}>
-                    <Text style={style.navBarText}>SCANNER:</Text>
-                    <Switch
-                        value={scanner}
-                        onChange={() => { setScanner(!scanner); setTorch(false); }}
-                    />
+                <View style={style.ingredients_lst}>
+                    <IngredientsList instructions={instructions} is_searching={isSearching} ingrdnts_to_dscrption={displayData} />
                 </View>
             </View>
-            {scanner &&
-                <View style={style.camera} onLayout={(event) => measureViewFinderDimensions(event)} >
-                    <FillToAspectRatio style={style.camera}>
-                        <RNCamera
-                            autoFocus='on'
-                            // autoFocusPointOfInterest={{ x: 0.5, y: 0.5 }}
-                            captureAudio={false}
-                            onFacesDetected={null}
-                            style={style.camera}
-
-                            type={RNCamera.Constants.Type.back}
-                            flashMode={torch ? RNCamera.Constants.FlashMode.torch : RNCamera.Constants.FlashMode.off}
-                            androidCameraPermissionOptions={{
-                                title: 'Permission to use camera',
-                                message: 'We need your permission to use your camera',
-                                buttonPositive: 'Ok',
-                                buttonNegative: 'Cancel',
-                            }}
-                            onBarCodeRead={null}
-                            onGoogleVisionBarcodesDetected={(scanner && detecingBarcode) ? handleBarCodeRead : null}
-                            googleVisionBarcodeType={(scanner && detecingBarcode) ? RNCamera.Constants.GoogleVisionBarcodeDetection.BarcodeType.ALL : null}
-                            onTextRecognized={(scanner && !detecingBarcode) ? handleTextRead : null}
-                        >
-                            <ViewFinder backgroundColor="transparent" loading={isSearching} height={viewFinderHeight} width={viewFinderWidth} />
-                            {renderTextBlocks()}
-                            {renderBarcodes()}
-                        </RNCamera>
-                    </FillToAspectRatio>
-                </View>
-            }
-            <View style={style.ingredients_lst}>
-                <IngredientsList is_searching={isSearching} ingrdnts_to_dscrption={displayData} />
+            <View style={style.bannerAd} >
+                <Ad adConsentStatus={props.adConsentStatus} adType='banner' />
             </View>
-        </View>
+        </Fragment>
     );
 };
+
+const instructions = `\nBegin by toggling the scanner. You may then toggle between text or product barcode detection.
+\nTip: Some product barcodes are yet to be supported, use text detection or simply search for the ingredient instead!`;
 
 const { width: winWidth, height: winHeight } = Dimensions.get('window');
 const style = StyleSheet.create({
     container: {
         display: 'flex',
+        flex: 10,
         flexDirection: "column",
         height: winHeight,
         width: winWidth,
-        paddingBottom: '5%',
-        paddingLeft: '2.5%',
-        paddingRight: '2.5%',
-        paddingTop: '2.5%',
+        padding: '1.5%',
         backgroundColor: 'green',
         overflow: 'hidden',
     },
@@ -321,8 +331,8 @@ const style = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-    navBarText:{
-        fontSize:11,
+    navBarText: {
+        fontSize: 11.5,
     },
     camera: {
         height: "100%",
@@ -350,7 +360,7 @@ const style = StyleSheet.create({
         left: 0,
         top: 0,
     },
-    text: {
+    MLKitText: {
         padding: 10,
         borderWidth: 2,
         borderRadius: 2,
@@ -358,4 +368,8 @@ const style = StyleSheet.create({
         borderColor: '#F00',
         justifyContent: 'center',
     },
+    bannerAd: {
+        flex: 1,
+        backgroundColor: 'green',
+    }
 });

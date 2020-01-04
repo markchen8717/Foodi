@@ -7,7 +7,7 @@ import Header from '../Components/Header';
 export default function IngredientsList(props) {
 
     const [collapse_all, toggleCollapseAll] = useState(true);
-    handleCollapseAllButton = () => {
+    const handleCollapseAllButton = () => {
         toggleCollapseAll(!collapse_all);
     }
 
@@ -17,10 +17,11 @@ export default function IngredientsList(props) {
                 <Header style={{ backgroundColor: '#40E0D0' }} title="Ingredients Found:" />
             </View>
             <View style={style.content}>
-                <View style={{alignItems:'center',paddingTop:'2%',}}>
+                <View style={{ alignItems: 'center', paddingTop: '2%', }}>
                     <Button title="Collapse All" onPress={handleCollapseAllButton} />
                     {props.ingrdnts_to_dscrption.length == 0 && !props.is_searching && <Text>No Results</Text>}
                     {props.is_searching && <Text >Loading...</Text>}
+                    {props.ingrdnts_to_dscrption.length == 0 && props.instructions != null && <Text style={{color:'grey',padding:'5%'}}>{props.instructions}</Text>}
                 </View>
                 <ScrollView contentContainerStyle={{ margin: "1.5%" }}>
                     {props.ingrdnts_to_dscrption.map((obj) => {
