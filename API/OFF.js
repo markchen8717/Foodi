@@ -7,11 +7,11 @@ export const getIngredientsListFromBarcodeAsync = async (barcode = "") => {
         const ingredientsObj = responseJson["product"]["ingredients"];
         let ingredientsList = [];
         ingredientsObj.forEach((obj) => {
-            try { 
+            try {
                 const ingredient = obj["id"].slice(3); //get rid of language identifier prefix
                 ingredientsList.push(ingredient);
                 if (Object.keys(obj).includes("origin")) { // handles sub ingredients ex. x(y,z)
-                    ingredientsList = [...ingredientsList, ...obj["origin"].split(",").map(x=>x.trim())];
+                    ingredientsList = [...ingredientsList, ...obj["origin"].split(",").map(x => x.trim())];
                 }
             } catch (error) {
                 console.log(error);
@@ -20,7 +20,7 @@ export const getIngredientsListFromBarcodeAsync = async (barcode = "") => {
         return ingredientsList;
 
     } catch (error) {
-        console.log("getIngredientsListFromBarcodeAsync",error);
+        console.log("getIngredientsListFromBarcodeAsync", error);
         return [];
     }
 

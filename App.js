@@ -34,7 +34,7 @@ export default function App() {
       }
       SplashScreen.hide();
     }
-      getAdConsentAsync();
+    getAdConsentAsync();
   }, []);
 
 

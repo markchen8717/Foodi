@@ -21,7 +21,7 @@ export default function IngredientsList(props) {
                     <Button title="Collapse All" onPress={handleCollapseAllButton} />
                     {props.ingrdnts_to_dscrption.length == 0 && !props.is_searching && <Text>No Results</Text>}
                     {props.is_searching && <Text >Loading...</Text>}
-                    {props.ingrdnts_to_dscrption.length == 0 && props.instructions != null && <Text style={{color:'grey',padding:'5%'}}>{props.instructions}</Text>}
+                    {props.ingrdnts_to_dscrption.length == 0 && props.instructions != null && <Text style={{ color: 'grey', padding: '5%' }}>{props.instructions}</Text>}
                 </View>
                 <ScrollView contentContainerStyle={{ margin: "1.5%" }}>
                     {props.ingrdnts_to_dscrption.map((obj) => {

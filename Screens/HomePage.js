@@ -1,4 +1,4 @@
-import React, { useState, Fragment, useEffect } from 'react';
+import React from 'react';
 import { Image, StyleSheet, Text, Dimensions, ImageBackground, TouchableOpacity } from 'react-native';
 
 

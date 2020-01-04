@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Fragment } from 'react';
-import { StyleSheet, Text, View, Button, Dimensions } from 'react-native';
+import { StyleSheet, View, Button, Dimensions } from 'react-native';
 import IngredientsList from '../Components/IngredientsList';
 import { SearchBar } from 'react-native-elements';
 import { getFilteredWordListAsync, getIngredientsToDescriptionAsync } from '../API/APIFunctions';
@@ -91,7 +91,7 @@ export default function SearchIngredientsPage(props) {
                 </View>
             </View>
             <View style={style.bannerAd} >
-                <Ad adConsentStatus = {props.adConsentStatus} adType='banner'/>
+                <Ad adConsentStatus={props.adConsentStatus} adType='banner' />
             </View>
         </Fragment>
     );
@@ -103,7 +103,7 @@ const { width: winWidth, height: winHeight } = Dimensions.get('window');
 const style = StyleSheet.create({
     container: {
         display: 'flex',
-        flex:10,
+        flex: 10,
         flexDirection: "column",
         height: winHeight,
         width: winWidth,

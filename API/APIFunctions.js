@@ -15,7 +15,7 @@ export const getIngredientsToDescriptionAsync = async (ingrdnts_lst = []) => {
       }
     }
   } catch (error) {
-    console.log("getIngredientsToDescriptionAsync",error);
+    console.log("getIngredientsToDescriptionAsync", error);
   }
   return ingredients_to_description;
 }
@@ -33,9 +33,9 @@ export const getFilteredWordListAsync = async (word_lst = []) => {
           -Capitalize the first letter of each word
             -Account for ingredients with multiple words
       */
-     
+
   try {
-    const charProcessedList = word_lst.map(x => x.toLowerCase().replace("\n"," ").replace(/[^A-Za-z\s]+/g, " ").trim()).filter(x => x != "" && x.length > 1);
+    const charProcessedList = word_lst.map(x => x.toLowerCase().replace("\n", " ").replace(/[^A-Za-z\s]+/g, " ").trim()).filter(x => x != "" && x.length > 1);
     const multiWordsFormattedList = charProcessedList.map((x) => {
       return x.split(" ").map(x => x.trim()).filter(x => x != "").map(x => x[0].toUpperCase() + x.slice(1)).reduce((a, b, i) => ((i == 0) ? b : a + " " + b), "");
     });
@@ -51,7 +51,7 @@ export const getFilteredWordListAsync = async (word_lst = []) => {
     }
     return [...FDAFilteredList, ...filteredNotInFDAList];
   } catch (error) {
-    console.log("getFilteredWordListAsync",error);
+    console.log("getFilteredWordListAsync", error);
   }
   return [];
 }
