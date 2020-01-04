@@ -5,7 +5,7 @@ import { REACT_APP_GOOGLE_BANNER_AD_UNIT_ID, REACT_APP_BUILD_ENV } from 'react-n
 
 export default function Ad(props) {
     useEffect(() => {
-        console.log("build env:", REACT_APP_BUILD_ENV);
+        console.log("build env:", REACT_APP_BUILD_ENV, "isRelease:",REACT_APP_BUILD_ENV === "RELEASE");
         console.log("ad consent status:", props.adConsentStatus);
     }, []);
     return (

@@ -129,7 +129,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.foodi"
+        applicationId "com.SaltyNerd.Foodi"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

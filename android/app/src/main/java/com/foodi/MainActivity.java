@@ -1,4 +1,4 @@
-package com.foodi;
+package com.SaltyNerd.Foodi;
 
 import com.facebook.react.ReactActivity;
 

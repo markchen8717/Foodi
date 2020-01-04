@@ -35,12 +35,12 @@ android_library(
 
 android_build_config(
     name = "build_config",
-    package = "com.foodi",
+    package = "com.SaltyNerd.Foodi",
 )
 
 android_resource(
     name = "res",
-    package = "com.foodi",
+    package = "com.SaltyNerd.Foodi",
     res = "src/main/res",
 )
 

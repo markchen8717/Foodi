@@ -1,4 +1,4 @@
-package com.foodi;
+package com.SaltyNerd.Foodi;
 
 import android.app.Application;
 import android.content.Context;
