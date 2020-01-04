@@ -5,6 +5,7 @@ import ScanIngredientsPage from './Screens/ScanIngredientsPage';
 import HomePage from './Screens/HomePage';
 import { REACT_APP_AD_MOB_PUBLISHER_ID } from 'react-native-dotenv';
 import { AdsConsent, AdsConsentStatus } from '@react-native-firebase/admob';
+import SplashScreen from 'react-native-splash-screen';
 
 
 
@@ -23,7 +24,7 @@ export default function App() {
         consentInfo.status === AdsConsentStatus.UNKNOWN
       ) {
         const formResult = await AdsConsent.showForm({
-          privacyPolicy: 'https://invertase.io/privacy-policy',
+          privacyPolicy: 'https://sites.google.com/view/saltynerd-appstudio/home/privacy-policy',
           withPersonalizedAds: true,
           withNonPersonalizedAds: true,
           withAdFree: false,
@@ -31,10 +32,10 @@ export default function App() {
         const status = formResult.status;
         setAdConsentStatus(status);
       }
+      SplashScreen.hide();
     }
-    if (page === "ScanIngredientsPage" || page === "SearchIngredientsPage")
       getAdConsentAsync();
-  }, [page]);
+  }, []);
 
 
 
