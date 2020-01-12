@@ -52,7 +52,7 @@ export default function SearchIngredientsPage(props) {
                     }
                 }
             }
-            if (!foundData && !unmount)
+            if (!foundData && !unmount && debouncedQuery == query)
                 setIsSearching(false);
         }
         if (!unmount && debouncedQuery == query) {
@@ -108,7 +108,7 @@ const style = StyleSheet.create({
         height: winHeight,
         width: winWidth,
         padding: '1.5%',
-        backgroundColor: '#FFA07A',
+        backgroundColor: 'green',
         overflow: 'hidden',
     }, navBar: {
         paddingLeft: '2.5%',
@@ -129,6 +129,6 @@ const style = StyleSheet.create({
     },
     bannerAd: {
         flex: 1,
-        backgroundColor: '#FFA07A',
+        backgroundColor: 'green',
     }
 });

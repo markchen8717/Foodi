@@ -23,7 +23,7 @@ export default function IngredientsList(props) {
                     {props.is_searching && <Text >Loading...</Text>}
                     {props.ingrdnts_to_dscrption.length == 0 && props.instructions != null && <Text style={{ color: 'grey', padding: '5%' }}>{props.instructions}</Text>}
                 </View>
-                <ScrollView contentContainerStyle={{ margin: "1.5%" }}>
+                <ScrollView contentContainerStyle={{ margin: "2.5%" }}>
                     {props.ingrdnts_to_dscrption.map((obj) => {
                         return <Accordian collapse_all={collapse_all} key={obj["name"]} title={obj["name"]} text_data={obj["text"]} visual_data={obj["visual"]} page_url={obj["page_url"]} />;
                     })}

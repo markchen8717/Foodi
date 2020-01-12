@@ -89,8 +89,8 @@ export default function ScanIngredientsPage(props) {
 
             let foundPotentialNewIngredients = false;
             if (!unmount && processed_word_lst.length > 0) {
-                setScannedWords(new Set([...scannedWords, ...processed_word_lst]));
                 const filtered_lst = await getFilteredWordListAsync(processed_word_lst);
+                setScannedWords(new Set([...scannedWords, ...processed_word_lst, ...filtered_lst.map(x => x.toUpperCase())]));
                 if (!unmount && filtered_lst.length > 0) {
                     console.log("filtered lst:", filtered_lst);
                     setPotentialNewIngredients(filtered_lst);
