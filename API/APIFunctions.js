@@ -35,15 +35,20 @@ export const getFilteredWordListAsync = async (word_lst = []) => {
       */
 
   try {
-    const charProcessedList = word_lst.map(x => x.toLowerCase().replace("\n", " ").replace(/[^A-Za-z\s]+/g, " ").trim()).filter(x => x != "" && x.length > 1);
-    const multiWordsFormattedList = charProcessedList.map((x) => {
-      return x.split(" ").map(x => x.trim()).filter(x => x != "").map(x => x[0].toUpperCase() + x.slice(1)).reduce((a, b, i) => ((i == 0) ? b : a + " " + b), "");
-    });
-    const removedDuplicates = multiWordsFormattedList.filter((x, i) => multiWordsFormattedList.indexOf(x) === i);
-    const removedNonNouns = removedDuplicates.filter(x => nlp(x).nouns().out() != "");
-    //console.log("preFDA filtered list", removedNonNouns);
-    const [FDAFilteredList, notInFDAList] = await getFDAFilteredWordListAsync(removedNonNouns, true);
-
+    const filteredList = word_lst.reduce((a, c) => {
+      const regexProcessed = c.toLowerCase().replace("\n", " ").replace(/[^A-Za-z\s]+/g, " ").trim();
+      //console.log(regexProcessed);
+      const formatted = regexProcessed.split(" ").reduce((a, b, i) => {
+        const cased = (b=="")? "" : b[0].toUpperCase() + b.slice(1);
+        return (i == 0) ? cased : a + " " + cased;
+      }, "");
+      return (formatted != "" &&
+        formatted.length > 1 &&
+        nlp(formatted).nouns().out() != "" &&
+        !a.includes(formatted)) ? [...a, formatted] : a;
+    }, []);
+    const [FDAFilteredList, notInFDAList] = await getFDAFilteredWordListAsync(filteredList, true);
+    console.log("fdaFiltered:",FDAFilteredList,"notInFDA:",notInFDAList);
     let filteredNotInFDAList = [];
     for (let i = 0; i < notInFDAList.length; i++) {
       if (await isIngredientInUPCAsync(notInFDAList[i]))
