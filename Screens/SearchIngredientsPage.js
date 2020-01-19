@@ -7,67 +7,56 @@ import { getIngredientSearchResultsAsync } from '../API/Wiki';
 import { useDebounce } from "use-debounce";
 import Ad from '../Components/Ad'
 
-export default function SearchIngredientsPage(props) {
 
-    const [unfilteredData, setUnfilteredData] = useState({});
+var globalQuery = "";
+export default function SearchIngredientsPage(props) {
+    var unmount = false;
+
     const [query, setQuery] = useState("");
     const [data, setData] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [debouncedQuery] = useDebounce(query, 500);
-    const [unmount, setUnmount] = useState(false);
 
 
     const handleHomeButton = async () => {
-        setUnmount(true);
+        unmount = true;
         props.setPage("HomePage");
     }
 
     const updateSearchAsync = async (text) => {
-        if (!unmount) {
-            setQuery(text);
-        }
+        setQuery(text);
+        globalQuery = text;
+
     }
 
     useEffect(() => {
-        if (!unmount)
-            setIsSearching(false);
-    }, [data]);
-
-    useEffect(() => {
-        console.log("debounced", debouncedQuery);
-        const myAsyncFunction = async function () {
-            let foundData = false;
-            const search_results = await getIngredientSearchResultsAsync(debouncedQuery);
-            console.log("wiki search results", search_results);
-            if (!unmount && search_results.length > 0 && debouncedQuery == query) {
-                const ingredients_lst = await getFilteredWordListAsync(search_results);
-                console.log("filtered list", ingredients_lst);
-                if (!unmount && ingredients_lst.length > 0 && debouncedQuery == query) {
-                    const api_data = await getIngredientsToDescriptionAsync(ingredients_lst);
-                    if (!unmount && api_data.length > 0 && debouncedQuery == query) {
-                        foundData = true;
-                        let unfiltered_data_obj = {};
-                        unfiltered_data_obj[debouncedQuery] = api_data;
-                        setUnfilteredData(unfiltered_data_obj);
-                    }
-                }
-            }
-            if (!foundData && !unmount && debouncedQuery == query)
+        const myAsyncFunction = async () => {
+            var search_results, filtered_lst, data = null;
+            search_results = await getIngredientSearchResultsAsync(debouncedQuery);
+            console.log("search_results:", search_results);
+            console.log("unmount:",unmount,"debouncedQuery:",debouncedQuery,"globalQuery:",globalQuery);
+            if (!unmount && debouncedQuery === globalQuery)
+                filtered_lst = await getFilteredWordListAsync(search_results);
+            console.log("filtered_lst:", filtered_lst);
+            if (!unmount && debouncedQuery === globalQuery && filtered_lst != null)
+                data = await getIngredientsToDescriptionAsync(filtered_lst);
+            console.log("data:", data);
+            if (!unmount && debouncedQuery === globalQuery && data != null) {
+                setData(data);
                 setIsSearching(false);
+            }
         }
-        if (!unmount && debouncedQuery == query) {
-            setIsSearching(true);
-            myAsyncFunction();
+        if (!unmount) {
+            setData([]);
+            if (debouncedQuery != "") {
+                setIsSearching(true);
+                myAsyncFunction();
+            } else {
+                setIsSearching(false);
+            }
         }
+        return(()=> {unmount = true;});
     }, [debouncedQuery]);
-
-    useEffect(() => {
-        const unfiltered_data_query = Object.keys(unfilteredData)[0];
-        if (!unmount && unfiltered_data_query == query) {
-            setData(unfilteredData[unfiltered_data_query]);
-        }
-    }, [unfilteredData]);
-
 
 
     return (

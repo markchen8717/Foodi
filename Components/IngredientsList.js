@@ -11,17 +11,29 @@ export default function IngredientsList(props) {
         toggleCollapseAll(!collapse_all);
     }
 
+    const handleClearAllButton = () => {
+
+            props.handleClearAll();
+    }
+
     return (
         <View style={style.container}>
             <View style={style.header}>
                 <Header style={{ backgroundColor: '#40E0D0' }} title="Ingredients Found:" />
             </View>
             <View style={style.content}>
-                <View style={{ alignItems: 'center', paddingTop: '2%', }}>
-                    <Button title="Collapse All" onPress={handleCollapseAllButton} />
-                    {props.ingrdnts_to_dscrption.length == 0 && !props.is_searching && <Text>No Results</Text>}
-                    {props.is_searching && <Text >Loading...</Text>}
-                    {props.ingrdnts_to_dscrption.length == 0 && props.instructions != null && <Text style={{ color: 'grey', padding: '5%' }}>{props.instructions}</Text>}
+                <View style={{ alignItems: 'center', paddingTop: '2%' }}>
+                    <View style={{ width: '100%', flexDirection: 'row', justifyContent: "space-around", }}>
+                        <Button title="Collapse All" onPress={handleCollapseAllButton} />
+                        {props.handleClearAll && <Button title="Clear All" onPress={handleClearAllButton} />}
+
+                    </View>
+                    <View style={{ alignItems: 'center', padding: '2%'  }}>
+                        {props.ingrdnts_to_dscrption.length == 0 && !props.is_searching && <Text>No Results</Text>}
+                        {props.is_searching && <Text >Loading...</Text>}
+                        {props.ingrdnts_to_dscrption.length == 0 && props.instructions != null && <Text style={{ color: 'grey', paddingHorizontal: '2.5%' }}>{props.instructions}</Text>}
+
+                    </View>
                 </View>
                 <ScrollView contentContainerStyle={{ margin: "2.5%" }}>
                     {props.ingrdnts_to_dscrption.map((obj) => {

@@ -13,7 +13,7 @@ export default function Ad(props) {
             {
                 props.adType === "banner" &&
                 <BannerAd
-                    unitId={(REACT_APP_BUILD_ENV === "RELEASE") ? REACT_APP_GOOGLE_BANNER_AD_UNIT_ID : TestIds.BANNER}
+                    unitId={(REACT_APP_BUILD_ENV === "RELEASE" ) ? REACT_APP_GOOGLE_BANNER_AD_UNIT_ID : TestIds.BANNER}
                     size={BannerAdSize.SMART_BANNER}
                     requestOptions={{
                         requestNonPersonalizedAdsOnly: props.adConsentStatus === AdsConsentStatus.NON_PERSONALIZED,

@@ -14,10 +14,11 @@ export const getIngredientsToDescriptionAsync = async (ingrdnts_lst = []) => {
         ingredients_to_description.push({ "name": name, "text": dscrption["text"], "visual": dscrption["visual"], "page_url": dscrption["page_url"] });
       }
     }
+    return ingredients_to_description;
   } catch (error) {
     console.log("getIngredientsToDescriptionAsync", error);
   }
-  return ingredients_to_description;
+  return [];
 }
 
 export const getFilteredWordListAsync = async (word_lst = []) => {
@@ -39,21 +40,54 @@ export const getFilteredWordListAsync = async (word_lst = []) => {
       const regexProcessed = c.toLowerCase().replace("\n", " ").replace(/[^A-Za-z\s]+/g, " ").trim();
       //console.log(regexProcessed);
       const formatted = regexProcessed.split(" ").reduce((a, b, i) => {
-        const cased = (b=="")? "" : b[0].toUpperCase() + b.slice(1);
+        const cased = (b == "") ? "" : b[0].toUpperCase() + b.slice(1);
         return (i == 0) ? cased : a + " " + cased;
       }, "");
+
       return (formatted != "" &&
         formatted.length > 1 &&
         nlp(formatted).nouns().out() != "" &&
+        formatted.split(" ").length < 5 &&
         !a.includes(formatted)) ? [...a, formatted] : a;
     }, []);
-    const [FDAFilteredList, notInFDAList] = await getFDAFilteredWordListAsync(filteredList, true);
-    console.log("fdaFiltered:",FDAFilteredList,"notInFDA:",notInFDAList);
+
+    let brokenFilteredList = [];
+    let FDAFilteredList = [];
+    let notInFDAList = [];
     let filteredNotInFDAList = [];
+
+    //break filteredList into lists of 30 ingredients
+
+    let tmpList = [];
+    for (let i = 1; i <= filteredList.length; i++) {
+      if (i % 30 == 0) {
+        brokenFilteredList.push(tmpList);
+        tmpList = [];
+      }
+      else
+        tmpList.push(filteredList[i - 1]);
+    }
+    if(filteredList.length < 30)
+      brokenFilteredList.push(tmpList);
+    console.log("brokenFilteredList:",brokenFilteredList);
+
+    for (let i = 0; i < brokenFilteredList.length; i++) {
+      if(brokenFilteredList[i].length == 0)
+        break;
+      const [inFDA, notInFDA] = await getFDAFilteredWordListAsync(brokenFilteredList[i], true);
+      FDAFilteredList = [...FDAFilteredList,...inFDA];
+      notInFDAList = [...notInFDAList,...notInFDA];
+    }
+
+    console.log("FDAFilteredList:",FDAFilteredList);
+    console.log("notInFDAList:",notInFDAList);
+
     for (let i = 0; i < notInFDAList.length; i++) {
       if (await isIngredientInUPCAsync(notInFDAList[i]))
         filteredNotInFDAList.push(notInFDAList[i]);
     }
+    console.log("filteredNotInFDAList",filteredNotInFDAList);
+
     return [...FDAFilteredList, ...filteredNotInFDAList];
   } catch (error) {
     console.log("getFilteredWordListAsync", error);
