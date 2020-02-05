@@ -1,6 +1,6 @@
 # Foodi
 
-Foodi is created to raise food consciousness in people's busy lives today, users can scan the product barcode or scan the ingredients list on the package to receive information about ingredients inside their food product. Users may also search up ingredients by typing them out.
+Foodi is created to raise food consciousness in people's busy lives today. Users can scan the product barcode or scan the ingredients list on the package to receive information about ingredients inside their food product. Users may also search up ingredients by typing them out.
 
 
 
