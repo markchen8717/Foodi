@@ -1,6 +1,6 @@
 # Foodi
 
-Foodi is an open source mobile app, created to raise food consciousness in people's busy lives today. Foodi provides users with detailed information about ingredients inside a food product through simply scanning the product barcode or the ingredients list.
+Foodi is an open source mobile app, created to raise food consciousness in people's busy lives. Foodi provides users with detailed information about ingredients inside a food product through simply scanning the product barcode or the ingredients list.
 
 ## Software Stack
 - React Native front end
