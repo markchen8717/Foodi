@@ -53,7 +53,7 @@ export const getIngredientDescriptionFromWikiAsync = async (ingredient) => {
             img_url = null;
         }
         const ingredientUsageText = await getIngredientUsageAsync(ingredient);
-        let text = (ingredientUsageText != null) ? ingredientUsageText : page_id_obj["extract"].replace("\n", " ").trim();
+        let text = (ingredientUsageText != null) ? ingredientUsageText : page_id_obj["extract"].replace(/\n+/g, " ").trim();
         text = getTruncatedText(text, 250);
         if(text == "")
             return null;
@@ -66,7 +66,7 @@ export const getIngredientDescriptionFromWikiAsync = async (ingredient) => {
 
 export const getIngredientUsageAsync = async (ingredient) => {
     try {
-        const parsedInput = ingredient.toLowerCase().trim().replace(" ", "_");
+        const parsedInput = ingredient.toLowerCase().trim().replace(/\s+/g, '_');
         const response = await fetch(REACT_APP_WIKI_SECTION_QUERY_URL + parsedInput);
         const responseJson = await response.json();
         const sections = responseJson["parse"]["sections"];
@@ -83,7 +83,7 @@ export const getIngredientUsageAsync = async (ingredient) => {
         const sectionParseResponse = await fetch(REACT_APP_WIKI_SECTION_PARSE_URL + parsedInput + "&section=" + section_id)
         const sectionParseResponseJson = await sectionParseResponse.json();
         const html = sectionParseResponseJson["parse"]["text"]["*"];
-        return cheerio.load(html).text().replace(section_title + "[edit]", "").replace("\n", " ").trim();
+        return cheerio.load(html).text().replace(section_title + "[edit]", "").replace(/\n+/g, " ").replace(/\[[0-9]+\]|\[edit\]/g,"").trim();
     } catch (error) {
         console.log("getIngredientUsageAsync",error);
         return null;
@@ -118,7 +118,7 @@ export const getIngredientDescriptionFromCookbookAsync = async (ingredient) => {
             }
         }
         let text = page_id_obj["extract"];
-        text = text.slice(text.indexOf("\n", text.lastIndexOf("|"))).replace("\n", " ").trim();
+        text = text.slice(text.indexOf("\n", text.lastIndexOf("|"))).replace(/\n+/g, " ").trim();
         return { "text": getTruncatedText(text, 250), "visual": img_url, "page_url": page_url };
     } catch (error) {
         console.log("getIngredientDescriptionFromCookbookAsync",error);

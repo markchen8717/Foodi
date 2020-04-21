@@ -37,7 +37,7 @@ export const getFilteredWordListAsync = async (word_lst = []) => {
 
   try {
     const filteredList = word_lst.reduce((a, c) => {
-      const regexProcessed = c.toLowerCase().replace("\n", " ").replace(/[^A-Za-z\s]+/g, " ").trim();
+      const regexProcessed = c.toLowerCase().replace(/\n+|[^A-Za-z\s]+/g, " ").trim();
       //console.log(regexProcessed);
       const formatted = regexProcessed.split(" ").reduce((a, b, i) => {
         const cased = (b == "") ? "" : b[0].toUpperCase() + b.slice(1);

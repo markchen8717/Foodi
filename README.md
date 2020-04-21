@@ -1,22 +1,8 @@
 # Foodi
 
-Foodi is an open source mobile app, created to raise food consciousness in people's busy lives. Foodi provides users with detailed information about ingredients inside a food product through simply scanning the product barcode or the ingredients list.
+Foodi is created to raise food consciousness in people's busy lives today, users can scan the product barcode or scan the ingredients list on the package to receive information about ingredients inside their food product. Users may also search up ingredients by typing them out.
 
-## Demo
-![App Demo](Demo/output.gif)
-![App Demo](Demo/output1.gif)
-![App Demo](Demo/output2.gif)
 
-## Software Stack
-- React Native front end
-- Firebase Mobile ML Kit
-  - Android optical character and barcode recognition 
-- React Native Fetch API
-  - Data extraction from the web
-- Open Food Facts API
-  - Food product barcode data
-- Wikipedia search API
-  - Ingredients data
 
 <a href="https://play.google.com/store/apps/details?id=com.SaltyNerd.Foodi" target="_blank">
   <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80"/>

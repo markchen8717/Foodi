@@ -8,7 +8,7 @@ export default function Accordian(props) {
     const [expanded, setExpanded] = useState(false);
     const [collapse_all, setCollapseAlll] = useState(props.collapse_all);
 
-    toggleExpand = () => {
+    const toggleExpand = () => {
         setExpanded((prevState) => { return !prevState; });
     }
 
@@ -30,15 +30,15 @@ export default function Accordian(props) {
             {expanded &&
                 <View style={styles.child}>
                     <Text>{props.text_data}</Text>
-                    <Fragment>
+                    <Text style={{ fontSize: 15, color: "blue" }} title="Details" onPress={() => Linking.openURL(props.page_url)}>See Details</Text>
+                    <View>
                         {props.visual_data !== null &&
                             <Image
                                 style={styles.visual_data}
                                 source={{ uri: props.visual_data }}
                             />
                         }
-                    </Fragment>
-                    <Text style={{ fontSize: 15, color: "blue" }} title="Details" onPress={() => Linking.openURL(props.page_url)}>See Details</Text>
+                    </View>
                 </View>
             }
         </View>
@@ -77,6 +77,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         height: 200,
         width: 200,
+        marginVertical :"2%"
     }
 
 });

@@ -1,10 +1,11 @@
 import React, { useEffect, useState, Fragment } from 'react';
-import { StyleSheet, View, Button, Dimensions } from 'react-native';
+import { View, Button } from 'react-native';
 import IngredientsList from '../Components/IngredientsList';
 import { SearchBar } from 'react-native-elements';
 import { getFilteredWordListAsync, getIngredientsToDescriptionAsync } from '../API/APIFunctions';
 import { getIngredientSearchResultsAsync } from '../API/Wiki';
 import { useDebounce } from "use-debounce";
+import {styles} from "../Styles/PageStyle"
 import Ad from '../Components/Ad'
 
 
@@ -61,8 +62,8 @@ export default function SearchIngredientsPage(props) {
 
     return (
         <Fragment>
-            <View style={style.container}>
-                <View style={style.navBar}>
+            <View style={styles.container}>
+                <View style={styles.navBar}>
                     <Button title="Home" onPress={handleHomeButton} />
                 </View>
 
@@ -75,49 +76,15 @@ export default function SearchIngredientsPage(props) {
                     showLoading={isSearching}
                 />
 
-                <View style={style.ingredients_lst}>
+                <View style={styles.ingredients_lst}>
                     <IngredientsList instructions={instructions} is_searching={isSearching} ingrdnts_to_dscrption={data} />
                 </View>
             </View>
-            <View style={style.bannerAd} >
+            <View >
                 <Ad adConsentStatus={props.adConsentStatus} adType='banner' />
             </View>
         </Fragment>
     );
 }
 
-const instructions = ``;
-
-const { width: winWidth, height: winHeight } = Dimensions.get('window');
-const style = StyleSheet.create({
-    container: {
-        display: 'flex',
-        flex: 10,
-        flexDirection: "column",
-        height: winHeight,
-        width: winWidth,
-        padding: '1.5%',
-        backgroundColor: 'green',
-        overflow: 'hidden',
-    }, navBar: {
-        paddingLeft: '2.5%',
-        paddingRight: '2.5%',
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        flex: 1.5,
-        backgroundColor: 'white',
-        borderTopEndRadius: 20,
-        borderTopStartRadius: 20,
-    },
-    ingredients_lst: {
-        flex: 10,
-        borderBottomStartRadius: 20,
-        borderBottomEndRadius: 20,
-        overflow: 'hidden',
-    },
-    bannerAd: {
-        flex: 1,
-        backgroundColor: 'green',
-    }
-});
+const instructions = `Begin by typing the ingredient into the search bar.`;

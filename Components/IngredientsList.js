@@ -19,7 +19,7 @@ export default function IngredientsList(props) {
     return (
         <View style={style.container}>
             <View style={style.header}>
-                <Header style={{ backgroundColor: '#40E0D0' }} title="Ingredients Found:" />
+                <Header style={{ backgroundColor: '#40E0D0' }} title="Ingredients found:" />
             </View>
             <View style={style.content}>
                 <View style={{ alignItems: 'center', paddingTop: '2%' }}>
@@ -28,17 +28,16 @@ export default function IngredientsList(props) {
                         {props.handleClearAll && <Button title="Clear All" onPress={handleClearAllButton} />}
 
                     </View>
-                    <View style={{ alignItems: 'center', padding: '2%'  }}>
-                        {props.ingrdnts_to_dscrption.length == 0 && !props.is_searching && <Text>No Results</Text>}
-                        {props.is_searching && <Text >Loading...</Text>}
-                        {props.ingrdnts_to_dscrption.length == 0 && props.instructions != null && <Text style={{ color: 'grey', paddingHorizontal: '2.5%' }}>{props.instructions}</Text>}
-
-                    </View>
                 </View>
                 <ScrollView contentContainerStyle={{ margin: "2.5%" }}>
                     {props.ingrdnts_to_dscrption.map((obj) => {
                         return <Accordian collapse_all={collapse_all} key={obj["name"]} title={obj["name"]} text_data={obj["text"]} visual_data={obj["visual"]} page_url={obj["page_url"]} />;
                     })}
+                    <View style={{ alignItems: 'center', paddingHorizontal: '2%'  }}>
+                        {props.is_searching && <Text >{"Loading..."}</Text>}
+                        {props.ingrdnts_to_dscrption.length == 0 && !props.is_searching && <Text>{"No results"}</Text>}
+                        {props.ingrdnts_to_dscrption.length == 0 && props.instructions != null && <Text style={{ color: 'grey', paddingHorizontal: '2.5%' }}>{props.instructions}</Text>}
+                    </View>
                 </ScrollView>
             </View>
         </View>
@@ -52,7 +51,7 @@ const style = StyleSheet.create({
         overflow: 'hidden'
     },
     header: {
-        flex: 10,
+        flex: 12,
         overflow: 'hidden',
     },
     content: {

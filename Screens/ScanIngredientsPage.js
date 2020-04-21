@@ -6,8 +6,11 @@ import { RNCamera } from 'react-native-camera';
 import FillToAspectRatio from '../Components/FillToAspectRatio';
 import ViewFinder from 'react-native-view-finder';
 import { getIngredientsListFromBarcodeAsync } from '../API/OFF';
+import {styles} from "../Styles/PageStyle"
 import Ad from '../Components/Ad'
 
+const { width: winWidth, height: winHeight } = Dimensions.get('window');
+var dataList = [];
 
 export default function ScanIngredientsPage(props) {
     var unmount = false;
@@ -27,6 +30,7 @@ export default function ScanIngredientsPage(props) {
         setScannedBarcodes(new Set([]));
         setScannedWords(new Set([]));
         setDisplayData([]);
+        dataList = [];
     }
 
 
@@ -38,7 +42,6 @@ export default function ScanIngredientsPage(props) {
     };
 
     const load_data = async (filtered_lst) => {
-        var dataList = [];
         console.log("filtered lst:", filtered_lst);
         for (let i = 0; i < filtered_lst.length; i++) {
             const data = await getIngredientsToDescriptionAsync([filtered_lst[i]]);
@@ -112,7 +115,7 @@ export default function ScanIngredientsPage(props) {
     };
 
     const renderBarcodes = () => (
-        <View style={style.facesContainer} pointerEvents="none">
+        <View style={camera_style.facesContainer} pointerEvents="none">
             {barcodes.map(renderBarcode)}
         </View>
     );
@@ -121,7 +124,7 @@ export default function ScanIngredientsPage(props) {
         <Fragment key={data + bounds.origin.x}>
             <View
                 style={[
-                    style.MLKitText,
+                    camera_style.MLKitText,
                     {
                         ...bounds.size,
                         left: bounds.origin.x,
@@ -129,13 +132,15 @@ export default function ScanIngredientsPage(props) {
                     },
                 ]}
             >
-                <Text style={[style.textBlock]}>{`${data} ${type}`}</Text>
+                <Text style={[camera_style.textBlock]}>{`${data} ${type}`}</Text>
             </View>
         </Fragment>
     );
 
     const measureViewFinderDimensions = (event) => {
         setViewFinderDimension({ "height": parseInt(0.90 * parseFloat(event.nativeEvent.layout.height)), "width": parseInt(0.95 * parseFloat(event.nativeEvent.layout.width)) });
+        console.log("camera width:", viewFinderDimension["width"],"camera height",viewFinderDimension["height"])
+        console.log("win width:",winWidth,"win height:",winHeight);
     };
 
 
@@ -143,11 +148,12 @@ export default function ScanIngredientsPage(props) {
         if (isSearching)
             return;
         const text_blocks_obj_arr = obj["textBlocks"];
-        //cap to one text block at a time
-        const new_text_block = (text_blocks_obj_arr.length > 0) ? [text_blocks_obj_arr[0]] : [];
-        const filtered_text_block = new_text_block.filter(x => !scannedWords.has(x.value.toUpperCase()));
+        
+        const filtered_text_block = text_blocks_obj_arr.filter(x => !scannedWords.has(x.value.toUpperCase()) && 100 < x.bounds.origin.y < viewFinderDimension["height"] + 150 );
         if (!unmount && filtered_text_block.length > 0) {
-            console.log("searching new text:", filtered_text_block[0].bounds);
+            filtered_text_block.forEach(el =>{
+                console.log(el.bounds);
+            })
             setIsSearching(true);
             setScannedWords(new Set([...scannedWords, ...filtered_text_block.map(x => x.value.toUpperCase())]));
             setTextBlocks(filtered_text_block);
@@ -155,7 +161,7 @@ export default function ScanIngredientsPage(props) {
     };
 
     const renderTextBlocks = () => (
-        <View style={style.facesContainer} pointerEvents="none">
+        <View style={camera_style.facesContainer} pointerEvents="none">
             {textBlocks.map(renderTextBlock)}
         </View>
     );
@@ -164,12 +170,12 @@ export default function ScanIngredientsPage(props) {
 
         return (
             <Fragment key={value + bounds.origin.x}>
-                <Text style={[style.textBlock, { left: bounds.origin.x, top: bounds.origin.y }]}>
+                <Text style={[camera_style.textBlock, { left: bounds.origin.x, top: bounds.origin.y }]}>
                     {value}
                 </Text>
                 <View
                     style={[
-                        style.MLKitText,
+                        camera_style.MLKitText,
                         {
                             ...bounds.size,
                             left: bounds.origin.x,
@@ -183,12 +189,12 @@ export default function ScanIngredientsPage(props) {
 
     return (
         <Fragment>
-            <View style={style.container}>
-                <View style={style.navBar}>
+            <View style={styles.container}>
+                <View style={styles.navBar}>
                     <Button title="Home" onPress={handleHomeButton} />
                     {scanner &&
-                        <View stlye={style.navSwitch}>
-                            <Text style={[style.navBarText, { backgroundColor: 'yellow' }]}>TORCH:</Text>
+                        <View >
+                            <Text style={[{backgroundColor:"gold"},styles.navBarText]}>TORCH:</Text>
                             <Switch
                                 value={torch}
                                 onChange={() => setTorch(!torch)}
@@ -196,8 +202,8 @@ export default function ScanIngredientsPage(props) {
                         </View>
                     }
                     {scanner &&
-                        <View stlye={style.navSwitch}>
-                            <Text style={style.navBarText}>DETECTING:</Text>
+                        <View >
+                            <Text style={styles.navBarText}>DETECTING:</Text>
                             <View style={{ flexDirection: 'row' }}>
                                 <Switch
                                     value={detectingBarcode}
@@ -205,13 +211,13 @@ export default function ScanIngredientsPage(props) {
                                     trackColor={{ false: 'grey', true: 'grey' }}
                                     thumbColor='green'
                                 />
-                                {detectingBarcode && <Text style={[style.navBarText, { color: 'blue' }]}>BARCODES</Text>}
-                                {!detectingBarcode && <Text style={[style.navBarText, { color: 'blue' }]}>TEXT</Text>}
+                                {detectingBarcode && <Text style={[styles.navBarText,{color:"green"}]}>BARCODES</Text>}
+                                {!detectingBarcode && <Text style={[styles.navBarText,{color:"#3498DB"}]}>TEXT</Text>}
                             </View>
                         </View>
                     }
-                    <View stlye={style.navSwitch}>
-                        <Text style={style.navBarText}>SCANNER:</Text>
+                    <View >
+                        <Text style={styles.navBarText}>SCANNER:</Text>
                         <Switch
                             value={scanner}
                             onChange={() => { setScanner(!scanner); setTorch(false); }}
@@ -219,14 +225,14 @@ export default function ScanIngredientsPage(props) {
                     </View>
                 </View>
                 {scanner &&
-                    <View style={style.camera} onLayout={(event) => measureViewFinderDimensions(event)} >
-                        <FillToAspectRatio style={style.camera}>
+                    <View style={camera_style.camera} onLayout={(event) => measureViewFinderDimensions(event)} >
+                        <FillToAspectRatio style={camera_style.camera}>
                             <RNCamera
                                 //autoFocus='on'
-                                autoFocusPointOfInterest={{ x: 0.2, y: 0.5 }}
+                                autoFocusPointOfInterest={{ x: 0.25, y: 0.5 }}
                                 captureAudio={false}
                                 onFacesDetected={null}
-                                style={style.camera}
+                                style={camera_style.camera}
 
                                 type={RNCamera.Constants.Type.back}
                                 flashMode={torch ? RNCamera.Constants.FlashMode.torch : RNCamera.Constants.FlashMode.off}
@@ -248,55 +254,27 @@ export default function ScanIngredientsPage(props) {
                         </FillToAspectRatio>
                     </View>
                 }
-                <View style={style.ingredients_lst}>
+                <View style={styles.ingredients_lst}>
                     <IngredientsList handleClearAll={handleClearAll} instructions={instructions} is_searching={isSearching} ingrdnts_to_dscrption={displayData} />
                 </View>
             </View>
-            <View style={style.bannerAd} >
+            <View >
                 <Ad adConsentStatus={props.adConsentStatus} adType='banner' />
             </View>
         </Fragment>
     );
 };
 
-const instructions = `\nBegin by toggling the scanner. You may then toggle between text or product barcode detection.
+const instructions = `Begin by toggling the scanner. You may then toggle between text or product barcode detection.
 \nTip: Some product barcodes are yet to be supported, use text detection or simply search for the ingredient instead!`;
 
-const { width: winWidth, height: winHeight } = Dimensions.get('window');
-const style = StyleSheet.create({
-    container: {
-        display: 'flex',
-        flex: 10,
-        flexDirection: "column",
-        height: winHeight,
-        width: winWidth,
-        padding: '1.5%',
-        backgroundColor: 'green',
-        overflow: 'hidden',
-    },
-    navBar: {
-        paddingLeft: '2.5%',
-        paddingRight: '2.5%',
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        flex: 1.75,
-        backgroundColor: 'white',
-        borderTopEndRadius: 20,
-        borderTopStartRadius: 20,
-    },
-    navSwitch: {
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    navBarText: {
-        fontSize: 11.5,
-    },
+
+const camera_style = StyleSheet.create({
+
     camera: {
         height: "100%",
         width: "100%",
-        flex: 5,
+        flex: 4.5,
         justifyContent: 'center',
         alignContent: 'center'
     },
@@ -305,12 +283,6 @@ const style = StyleSheet.create({
         position: 'absolute',
         textAlign: 'center',
         backgroundColor: 'transparent',
-    },
-    ingredients_lst: {
-        flex: 10,
-        borderBottomStartRadius: 20,
-        borderBottomEndRadius: 20,
-        overflow: 'hidden',
     },
     facesContainer: {
         position: 'absolute',
@@ -327,8 +299,4 @@ const style = StyleSheet.create({
         borderColor: '#F00',
         justifyContent: 'center',
     },
-    bannerAd: {
-        flex: 1,
-        backgroundColor: 'green',
-    }
 });

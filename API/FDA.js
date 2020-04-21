@@ -1,5 +1,6 @@
 import { REACT_APP_FDA_API_KEY } from 'react-native-dotenv';
 import { REACT_APP_FDA_API_URL } from 'react-native-dotenv';
+import HashTable from '../Data_Structures/HashTable.js';
 const nlp = require('compromise');
 
 export const getFDAFilteredWordListAsync = async (wordList = [], getRemovedItems = false) => {
@@ -19,18 +20,30 @@ export const getFDAFilteredWordListAsync = async (wordList = [], getRemovedItems
             method: "POST"
         })
         const responseJson = await response.json();
+
         console.log("processing in fda");
-        const food_description_words = responseJson["foods"].reduce((a, obj) => {
-            const phrases_arr = obj["description"].toLowerCase().split(",");
-            const nouns = phrases_arr.reduce((a, c) => ([...a,
-            //...nlp(c).nouns().toSingular().out('array'),
-            ...nlp(c).nouns().toPlural().out('array')]), []);
-            return [...new Set([...a, ...nouns])];
-        }, []);
-        
-        console.log("description words",food_description_words,"length:",food_description_words.length);
-        const filtered_lst = wordList.filter(x => food_description_words.includes(nlp(x).nouns().toPlural().out().toLowerCase()));
-        const removed_items_lst = wordList.filter(x => !filtered_lst.includes(x));
+        let food_description_words = new HashTable(200);
+        responseJson["foods"].forEach(food => {
+            const phrases_arr = food["description"].toLowerCase().split(",");
+            phrases_arr.forEach(phrase => {
+                // nlp(phrase).nouns().toPlural().out('array').forEach(noun => {
+                //     food_description_words.push(noun);
+                // })
+                food_description_words.push(phrase);
+            });
+        });
+
+        console.log("description words", food_description_words.storage);
+        let filtered_lst = [];
+        let removed_items_lst = [];
+        wordList.forEach(x => {
+            if (food_description_words.includes(nlp(x).nouns().toPlural().out().toLowerCase()) ||
+                food_description_words.includes(nlp(x).nouns().toSingular().out().toLowerCase()) ||
+                food_description_words.includes(x))
+                filtered_lst.push(x);
+            else
+                removed_items_lst.push(x);
+        })
         console.log("leaving fda");
         return (getRemovedItems) ? [filtered_lst, removed_items_lst] : filtered_lst;
     } catch (error) {
