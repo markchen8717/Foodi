@@ -3,11 +3,12 @@ import { REACT_APP_FDA_API_URL } from 'react-native-dotenv';
 import HashTable from '../Data_Structures/HashTable.js';
 const nlp = require('compromise');
 
-export const getFDAFilteredWordListAsync = async (wordList = [], getRemovedItems = false) => {
+export const getFDAFilteredWordListAsync = async (wordList = [], getRemovedItems = false,abortController=new AbortController()) => {
     try {
         console.log("in fda");
         const parsedInput = wordList.reduce((a, b, i) => ((i == 0) ? b.toLowerCase() : a + ',' + b.toLowerCase()), "");
         const response = await fetch(REACT_APP_FDA_API_URL + REACT_APP_FDA_API_KEY, {
+            signal : abortController.signal,
             body: JSON.stringify({
                 "generalSearchInput": parsedInput,
                 "includeDataTypeList": ["Foundation", "SR Legacy"],

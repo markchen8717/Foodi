@@ -16,6 +16,7 @@
     "cheerio": "^0.22.0",
     "compromise": "^12.2.1",
     "events": "^3.0.0",
+    "fuse.js": "^6.0.0",
     "path": "^0.12.7",
     "react": "16.9.0",
     "react-native": "0.61.5",

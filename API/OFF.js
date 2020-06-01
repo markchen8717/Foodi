@@ -1,9 +1,9 @@
 import { REACT_APP_OFF_PRODUCT_QUERY_URL } from 'react-native-dotenv';
 
 
-export const getIngredientsListFromBarcodeAsync = async (barcode = "") => {
+export const getIngredientsListFromBarcodeAsync = async (barcode = "",abortController=new AbortController()) => {
     try {
-        const responseJson = await (await fetch(REACT_APP_OFF_PRODUCT_QUERY_URL + barcode + ".json")).json();
+        const responseJson = await (await fetch(REACT_APP_OFF_PRODUCT_QUERY_URL + barcode + ".json",{signal:abortController.signal})).json();
         const ingredientsObj = responseJson["product"]["ingredients"];
         let ingredientsList = [];
         ingredientsObj.forEach((obj) => {

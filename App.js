@@ -8,9 +8,8 @@ import { AdsConsent, AdsConsentStatus } from '@react-native-firebase/admob';
 import SplashScreen from 'react-native-splash-screen';
 import DeviceInfo from 'react-native-device-info';
 import { REACT_APP_GOOGLE_PLAY_LINK, REACT_APP_FORCE_UPDATE } from 'react-native-dotenv';
+
 const cheerio = require('cheerio')
-
-
 
 export default function App() {
 

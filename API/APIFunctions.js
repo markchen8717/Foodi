@@ -1,15 +1,28 @@
 import { getIngredientDescriptionFromCookbookAsync, getIngredientDescriptionFromWikiAsync } from './Wiki';
 import { getFDAFilteredWordListAsync } from './FDA';
 import { isIngredientInUPCAsync } from './UPC';
-const nlp = require('compromise');
+import Fuse from 'fuse.js';
 
-export const getIngredientsToDescriptionAsync = async (ingrdnts_lst = []) => {
+const nlp = require('compromise');
+const Data = require('../data.json');
+
+export function getSimilarWordsList(word="",length=5){
+  const fuseOptions = {
+    includeScore: true,
+    shouldSort: true
+  }
+  const fuse = new Fuse(Data,fuseOptions)
+  const result = fuse.search(word).slice(0,length).map((x)=>(x.item))
+  return result
+}
+
+export const getIngredientsToDescriptionAsync = async (ingrdnts_lst = [],abortController=new AbortController()) => {
   let ingredients_to_description = [];
   try {
     for (let i = 0; i < ingrdnts_lst.length; i++) {
       const name = ingrdnts_lst[i];
-      const cookbook_dscrption = await getIngredientDescriptionFromCookbookAsync(name);
-      const dscrption = (cookbook_dscrption != null) ? cookbook_dscrption : await getIngredientDescriptionFromWikiAsync(name);
+      const cookbook_dscrption = null
+      const dscrption = (cookbook_dscrption != null) ? cookbook_dscrption : await getIngredientDescriptionFromWikiAsync(name,abortController);
       if (dscrption !== null) {
         ingredients_to_description.push({ "name": name, "text": dscrption["text"], "visual": dscrption["visual"], "page_url": dscrption["page_url"] });
       }
@@ -21,7 +34,7 @@ export const getIngredientsToDescriptionAsync = async (ingrdnts_lst = []) => {
   return [];
 }
 
-export const getFilteredWordListAsync = async (word_lst = []) => {
+export const getFilteredWordListAsync = async (word_lst = [],abortController = new AbortController()) => {
   /*
       filter
         -ingredient not in FDA
@@ -56,7 +69,7 @@ export const getFilteredWordListAsync = async (word_lst = []) => {
     let notInFDAList = [];
     let filteredNotInFDAList = [];
 
-    //break filteredList into lists of 30 ingredients
+    // break filteredList into lists of 30 ingredients
 
     let tmpList = [];
     for (let i = 1; i <= filteredList.length; i++) {
@@ -74,7 +87,7 @@ export const getFilteredWordListAsync = async (word_lst = []) => {
     for (let i = 0; i < brokenFilteredList.length; i++) {
       if(brokenFilteredList[i].length == 0)
         break;
-      const [inFDA, notInFDA] = await getFDAFilteredWordListAsync(brokenFilteredList[i], true);
+      const [inFDA, notInFDA] = await getFDAFilteredWordListAsync(brokenFilteredList[i], true,abortController);
       FDAFilteredList = [...FDAFilteredList,...inFDA];
       notInFDAList = [...notInFDAList,...notInFDA];
     }
@@ -83,12 +96,15 @@ export const getFilteredWordListAsync = async (word_lst = []) => {
     console.log("notInFDAList:",notInFDAList);
 
     for (let i = 0; i < notInFDAList.length; i++) {
-      if (await isIngredientInUPCAsync(notInFDAList[i]))
+      if (await isIngredientInUPCAsync(notInFDAList[i],abortController))
         filteredNotInFDAList.push(notInFDAList[i]);
     }
     console.log("filteredNotInFDAList",filteredNotInFDAList);
 
     return [...FDAFilteredList, ...filteredNotInFDAList];
+
+    // console.log("filtered list",filteredList)
+    // return filteredList.map((x)=>getMostAppropriateWord(x))
   } catch (error) {
     console.log("getFilteredWordListAsync", error);
   }

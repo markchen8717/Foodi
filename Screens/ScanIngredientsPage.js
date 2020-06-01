@@ -1,19 +1,18 @@
 import React, { useEffect, useState, Fragment } from 'react';
 import { StyleSheet, Text, View, Button, Dimensions, Switch } from 'react-native';
 import IngredientsList from '../Components/IngredientsList';
-import { getFilteredWordListAsync, getIngredientsToDescriptionAsync } from '../API/APIFunctions';
+import { getFilteredWordListAsync, getIngredientsToDescriptionAsync, getMostAppropriateWord } from '../API/APIFunctions';
 import { RNCamera } from 'react-native-camera';
 import FillToAspectRatio from '../Components/FillToAspectRatio';
 import ViewFinder from 'react-native-view-finder';
 import { getIngredientsListFromBarcodeAsync } from '../API/OFF';
-import {styles} from "../Styles/PageStyle"
+import { styles } from "../Styles/PageStyle"
 import Ad from '../Components/Ad'
 
 const { width: winWidth, height: winHeight } = Dimensions.get('window');
 var dataList = [];
 
 export default function ScanIngredientsPage(props) {
-    var unmount = false;
 
     const [scannedWords, setScannedWords] = useState(new Set([]));
     const [scannedBarcodes, setScannedBarcodes] = useState(new Set([]));
@@ -35,68 +34,79 @@ export default function ScanIngredientsPage(props) {
 
 
     const handleHomeButton = async () => {
-        unmount = true;
         setTorch(false);
         setScanner(false);
         props.setPage("HomePage");
     };
 
-    const load_data = async (filtered_lst) => {
+    const load_data = async (filtered_lst,abortController=new AbortController()) => {
         console.log("filtered lst:", filtered_lst);
         for (let i = 0; i < filtered_lst.length; i++) {
-            const data = await getIngredientsToDescriptionAsync([filtered_lst[i]]);
-            dataList = [...dataList,...data];
+            const data = await getIngredientsToDescriptionAsync([filtered_lst[i]],abortController);
+            dataList = [...dataList, ...data];
             setDisplayData(dataList);
         }
     }
 
 
     useEffect(() => {
+        let isCancelled = false;
+        const myAbortController = new AbortController();
         const myAsyncFunction = async function () {
             const word_lst = textBlocks.reduce((a, c) => {
                 const words1 = c.value.trim().split(",");
                 const words2 = c.value.trim().split(/[ ,]+/);
                 return [...a, ...words1, ...words2];
-            },[]);
+            }, []);
             const processed_word_lst = word_lst.filter(x => /^[a-zA-Z\s]+$/.test(x) && !scannedWords.has(x.toUpperCase()));
             console.log("processed_word_lst", processed_word_lst);
-            if (!unmount && processed_word_lst.length > 0) {
-                const filtered_lst = (await getFilteredWordListAsync(processed_word_lst)).filter(x=>!displayData.map(x=>x.name).includes(x));
+            if (!isCancelled && processed_word_lst.length > 0) {
+
+                const filtered_lst = (await getFilteredWordListAsync(processed_word_lst,myAbortController)).filter(x => !displayData.map(x => x.name).includes(x));
+
                 setScannedWords(new Set([...scannedWords, ...word_lst.map(x => x.toUpperCase()), ...filtered_lst.map(x => x.toUpperCase())]));
-                if (!unmount)
-                    await load_data(filtered_lst);
+                if (!isCancelled)
+                    await load_data(filtered_lst,myAbortController);
             }
-            if (!unmount){
+            if (!isCancelled) {
                 setIsSearching(false);
                 setTextBlocks([]);
             }
         }
-        if (!unmount && textBlocks.length > 0) {
+        if (!isCancelled && textBlocks.length > 0) {
 
             myAsyncFunction();
         }
-        return (() => unmount = true);
+        return () => {
+            isCancelled = true;
+            myAbortController.abort();
+        };
     }, [textBlocks]);
 
 
     useEffect(() => {
+        let isCancelled = false;
+        const myAbortController = new AbortController();
         const myAsyncFunction = async function () {
-            const ingredients_list = await getIngredientsListFromBarcodeAsync(barcodes[0].data);
-            if (!unmount && ingredients_list.length > 0) {
-                const filtered_lst = (await getFilteredWordListAsync(ingredients_list)).filter(x=>!displayData.map(x=>x.name).includes(x));
+            const ingredients_list = await getIngredientsListFromBarcodeAsync(barcodes[0].data,myAbortController);
+            if (!isCancelled && ingredients_list.length > 0) {
+                const filtered_lst = (await getFilteredWordListAsync(ingredients_list,myAbortController)).filter(x => !displayData.map(x => x.name).includes(x));
                 setScannedWords(new Set([...scannedWords, ...filtered_lst.map(x => x.toUpperCase())]));
-                if (!unmount)
-                    await load_data(filtered_lst);
+                if (!isCancelled)
+                    await load_data(filtered_lst,myAbortController);
             }
-            if (!unmount){
+            if (!isCancelled) {
                 setIsSearching(false);
                 setBarcodes([]);
             }
         }
-        if (!unmount && barcodes.length > 0) {
+        if (!isCancelled && barcodes.length > 0) {
             myAsyncFunction();
         }
-        return (() => unmount = true);
+        return () => {
+            isCancelled = true;
+            myAbortController.abort();
+        };
     }, [barcodes]);
 
 
@@ -107,7 +117,7 @@ export default function ScanIngredientsPage(props) {
         //cap it to one barcode at a time for now
         const new_barcode = (barcodes_obj.length > 0) ? [barcodes_obj[0]] : [];
         const filtered_barcode = new_barcode.filter(x => !scannedBarcodes.has(x.data));
-        if (!unmount && filtered_barcode.length > 0) {
+        if (filtered_barcode.length > 0) {
             setIsSearching(true);
             setBarcodes(filtered_barcode);
             setScannedBarcodes(new Set([...scannedBarcodes, ...filtered_barcode.map(x => x.data)]));
@@ -139,8 +149,8 @@ export default function ScanIngredientsPage(props) {
 
     const measureViewFinderDimensions = (event) => {
         setViewFinderDimension({ "height": parseInt(0.90 * parseFloat(event.nativeEvent.layout.height)), "width": parseInt(0.95 * parseFloat(event.nativeEvent.layout.width)) });
-        console.log("camera width:", viewFinderDimension["width"],"camera height",viewFinderDimension["height"])
-        console.log("win width:",winWidth,"win height:",winHeight);
+        console.log("camera width:", viewFinderDimension["width"], "camera height", viewFinderDimension["height"])
+        console.log("win width:", winWidth, "win height:", winHeight);
     };
 
 
@@ -148,10 +158,10 @@ export default function ScanIngredientsPage(props) {
         if (isSearching)
             return;
         const text_blocks_obj_arr = obj["textBlocks"];
-        
-        const filtered_text_block = text_blocks_obj_arr.filter(x => !scannedWords.has(x.value.toUpperCase()) && 100 < x.bounds.origin.y < viewFinderDimension["height"] + 150 );
-        if (!unmount && filtered_text_block.length > 0) {
-            filtered_text_block.forEach(el =>{
+
+        const filtered_text_block = text_blocks_obj_arr.filter(x => !scannedWords.has(x.value.toUpperCase()) && 100 < x.bounds.origin.y < viewFinderDimension["height"] + 150);
+        if (filtered_text_block.length > 0) {
+            filtered_text_block.forEach(el => {
                 console.log(el.bounds);
             })
             setIsSearching(true);
@@ -194,7 +204,7 @@ export default function ScanIngredientsPage(props) {
                     <Button title="Home" onPress={handleHomeButton} />
                     {scanner &&
                         <View >
-                            <Text style={[{backgroundColor:"gold"},styles.navBarText]}>TORCH:</Text>
+                            <Text style={[{ backgroundColor: "gold" }, styles.navBarText]}>TORCH:</Text>
                             <Switch
                                 value={torch}
                                 onChange={() => setTorch(!torch)}
@@ -211,8 +221,8 @@ export default function ScanIngredientsPage(props) {
                                     trackColor={{ false: 'grey', true: 'grey' }}
                                     thumbColor='green'
                                 />
-                                {detectingBarcode && <Text style={[styles.navBarText,{color:"green"}]}>BARCODES</Text>}
-                                {!detectingBarcode && <Text style={[styles.navBarText,{color:"#3498DB"}]}>TEXT</Text>}
+                                {detectingBarcode && <Text style={[styles.navBarText, { color: "green" }]}>BARCODES</Text>}
+                                {!detectingBarcode && <Text style={[styles.navBarText, { color: "#3498DB" }]}>TEXT</Text>}
                             </View>
                         </View>
                     }

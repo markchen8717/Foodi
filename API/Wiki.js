@@ -22,9 +22,9 @@ const getProcessedURL = (url = "") => {
     return ((url.includes("http")) ? url : "https:" + url);
 }
 
-export const getIngredientSearchResultsAsync = async (ingredient="") => {
+export const getIngredientSearchResultsAsync = async (ingredient="",abortController=new AbortController()) => {
     try {
-        const responseJson = await (await fetch(REACT_APP_WIKI_SEARCH_URL + ingredient)).json();
+        const responseJson = await (await fetch(REACT_APP_WIKI_SEARCH_URL + ingredient,{signal:abortController.signal})).json();
         if(Array.isArray(responseJson) && responseJson.length>=2)
             return responseJson[1];
         else
@@ -35,9 +35,9 @@ export const getIngredientSearchResultsAsync = async (ingredient="") => {
     }
 }
 
-export const getIngredientDescriptionFromWikiAsync = async (ingredient) => {
+export const getIngredientDescriptionFromWikiAsync = async (ingredient,abortController=new AbortController()) => {
     try {
-        const response = await fetch(REACT_APP_WIKI_QUERY_URL + ingredient.toLowerCase());
+        const response = await fetch(REACT_APP_WIKI_QUERY_URL + ingredient.toLowerCase(),{signal:abortController.signal});
         const responseJson = await response.json()
         const pages_obj = responseJson["query"]["pages"];
         const page_id = Object.keys(pages_obj)[0];
@@ -52,7 +52,7 @@ export const getIngredientDescriptionFromWikiAsync = async (ingredient) => {
         } catch{
             img_url = null;
         }
-        const ingredientUsageText = await getIngredientUsageAsync(ingredient);
+        const ingredientUsageText = null
         let text = (ingredientUsageText != null) ? ingredientUsageText : page_id_obj["extract"].replace(/\n+/g, " ").trim();
         text = getTruncatedText(text, 250);
         if(text == "")
@@ -64,10 +64,10 @@ export const getIngredientDescriptionFromWikiAsync = async (ingredient) => {
     }
 }
 
-export const getIngredientUsageAsync = async (ingredient) => {
+export const getIngredientUsageAsync = async (ingredient,abortController=new AbortController()) => {
     try {
         const parsedInput = ingredient.toLowerCase().trim().replace(/\s+/g, '_');
-        const response = await fetch(REACT_APP_WIKI_SECTION_QUERY_URL + parsedInput);
+        const response = await fetch(REACT_APP_WIKI_SECTION_QUERY_URL + parsedInput,{signal:abortController.signal});
         const responseJson = await response.json();
         const sections = responseJson["parse"]["sections"];
         let section_id = null;
@@ -80,7 +80,7 @@ export const getIngredientUsageAsync = async (ingredient) => {
                 break;
             }
         }
-        const sectionParseResponse = await fetch(REACT_APP_WIKI_SECTION_PARSE_URL + parsedInput + "&section=" + section_id)
+        const sectionParseResponse = await fetch(REACT_APP_WIKI_SECTION_PARSE_URL + parsedInput + "&section=" + section_id,{signal:abortController.signal})
         const sectionParseResponseJson = await sectionParseResponse.json();
         const html = sectionParseResponseJson["parse"]["text"]["*"];
         return cheerio.load(html).text().replace(section_title + "[edit]", "").replace(/\n+/g, " ").replace(/\[[0-9]+\]|\[edit\]/g,"").trim();
@@ -90,9 +90,9 @@ export const getIngredientUsageAsync = async (ingredient) => {
     }
 }
 
-export const getIngredientDescriptionFromCookbookAsync = async (ingredient) => {
+export const getIngredientDescriptionFromCookbookAsync = async (ingredient,abortController=new AbortController()) => {
     try {
-        const response = await fetch(REACT_APP_COOKBOOK_API_URL + ingredient);
+        const response = await fetch(REACT_APP_COOKBOOK_API_URL + ingredient,{signal:abortController.signal});
         const responseJson = await response.json()
         const pages_obj = responseJson["query"]["pages"];
         const page_id = Object.keys(pages_obj)[0];
@@ -105,7 +105,7 @@ export const getIngredientDescriptionFromCookbookAsync = async (ingredient) => {
         for (let i = 0; i < ((img_arr !== null) ? img_arr.length : 0); i++) {
             let img_title = img_arr[i]["title"];
             if (img_title.includes(".jpg")) {
-                const response2 = await fetch(REACT_APP_WIKI_QUERY_URL + img_title);
+                const response2 = await fetch(REACT_APP_WIKI_QUERY_URL + img_title,{signal:abortController.signal});
                 const response2Json = await response2.json();
                 const page_id2 = Object.keys(response2Json["query"]["pages"])[0];
                 try {
