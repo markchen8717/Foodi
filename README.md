@@ -1,4 +1,7 @@
 # Foodi
+<a href="https://play.google.com/store/apps/details?id=com.SaltyNerd.Foodi" target="_blank">
+  <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80"/>
+</a>
 
 ## Demo
 Foodi is a mobile app I created to provide users with detailed information about ingredients inside a food product.
@@ -20,8 +23,3 @@ Alternatively, users may search for a specific ingredient by inputting its name.
   It needs no introduction, but nonetheless, Wikipedia is a free online encyclopedia, created and edited by volunteers around the world. The detailed information of each ingredient is obtained from here, through the use of its search API.
 - ### React Native Fetch API
   React Native provides the Fetch API for developer's networking needs. Thanks to this, Foodi doesn't require a back-end server to act as a middleman between the databases and its users. Data can be easily requested on demand, from the end user's device, directly to the appropriate database, with greater efficiency.
-
-
-<a href="https://play.google.com/store/apps/details?id=com.SaltyNerd.Foodi" target="_blank">
-  <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80"/>
-</a>
