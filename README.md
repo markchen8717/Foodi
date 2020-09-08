@@ -2,8 +2,10 @@
 
 ## Demo
 Foodi is a mobile app I created to provide users with detailed information about ingredients inside a food product.
+
 ![App Demo](Demo/output1.gif)
 To learn more about what is inside a food product, users may scan the ingredients list on the product packaging with the camera built-in on their phones. Also through the use of optical recognition, users may find and scan the barcode on the packaging for ingredient details.
+
 ![App Demo](Demo/output2.gif)
 Alternatively, users may search for a specific ingredient by inputting its name. Both food ingredients and chemical ingredients are supported.
 
