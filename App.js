@@ -8,6 +8,7 @@ import { AdsConsent, AdsConsentStatus } from '@react-native-firebase/admob';
 import SplashScreen from 'react-native-splash-screen';
 import DeviceInfo from 'react-native-device-info';
 import { REACT_APP_GOOGLE_PLAY_LINK, REACT_APP_FORCE_UPDATE } from 'react-native-dotenv';
+import {setDataAsync} from './API/Storage';
 
 const cheerio = require('cheerio')
 
@@ -45,15 +46,15 @@ export default function App() {
       const a = parsedText.lastIndexOf("Current Version");
       const b = parsedText.indexOf("R", a);
       const latestVersionString = parsedText.substring(a, b).replace("Current Version", "");
-      const currentVersionString =  DeviceInfo.getVersion();
+      const currentVersionString = DeviceInfo.getVersion();
       const lastestVersionParsedInt = parseInt(latestVersionString.replace(/\./g,""));
       const currentVersionParsedInt =  parseInt(currentVersionString.replace(/\./g,""));
-      console.log("lastest version:",latestVersionString, "parsedInt:",lastestVersionParsedInt);
-      console.log("current version:", currentVersionString, "current version parsedInt:",currentVersionParsedInt);
+      console.log("lastest version:",latestVersionString);
+      console.log("current version:", currentVersionString);
       if (REACT_APP_FORCE_UPDATE === "TRUE" &&  lastestVersionParsedInt >currentVersionParsedInt) {
         Alert.alert(
           'New Update Available',
-          'Update Foodi from the Google Play store now!',
+          'Update Foodi from the Google Play store for new exciting features!',
           [
             { text: 'Update', onPress: () => Linking.openURL(REACT_APP_GOOGLE_PLAY_LINK) },
           ],
@@ -65,9 +66,19 @@ export default function App() {
         SplashScreen.hide();
     };
 
-    checkUpdateAsync();
-    getAdConsentAsync();
+    const main = async()=>{
 
+      if(!__DEV__)
+      {
+        console.log = () =>{};
+      }
+      await setDataAsync("lastPage",JSON.stringify(-1))
+      await setDataAsync("currentPage",JSON.stringify(0))
+      await getAdConsentAsync();
+      await checkUpdateAsync();
+    }
+
+    main();
   }, []);
 
 

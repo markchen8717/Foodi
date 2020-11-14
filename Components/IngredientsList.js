@@ -11,15 +11,15 @@ export default function IngredientsList(props) {
         toggleCollapseAll(!collapse_all);
     }
 
-    const handleClearAllButton = () => {
+    const handleClearAllButton = async function(){
 
-            props.handleClearAll();
+            await props.handleClearAll();
     }
 
     return (
         <View style={style.container}>
             <View style={style.header}>
-                <Header style={{ backgroundColor: '#40E0D0' }} title="Ingredients found:" />
+                <Header style={{ backgroundColor: '#40E0D0' }} title="Ingredients Found:" />
             </View>
             <View style={style.content}>
                 <View style={{ alignItems: 'center', paddingTop: '2%' }}>
@@ -31,7 +31,7 @@ export default function IngredientsList(props) {
                 </View>
                 <ScrollView contentContainerStyle={{ margin: "2.5%" }}>
                     {props.ingrdnts_to_dscrption.map((obj) => {
-                        return <Accordian collapse_all={collapse_all} key={obj["name"]} title={obj["name"]} text_data={obj["text"]} visual_data={obj["visual"]} page_url={obj["page_url"]} />;
+                        return <Accordian collapse_all={collapse_all} key={obj["title"]} title={obj["title"]} text_data={obj["text"]} visual_data={obj["visual"]} page_url={obj["page_url"]} />;
                     })}
                     <View style={{ alignItems: 'center', paddingHorizontal: '2%'  }}>
                         {props.is_searching && <Text >{"Loading..."}</Text>}

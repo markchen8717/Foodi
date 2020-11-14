@@ -1,21 +1,24 @@
 import React, { useEffect, useState, Fragment } from 'react';
 import { StyleSheet, Text, View, Button, Dimensions, Switch } from 'react-native';
 import IngredientsList from '../Components/IngredientsList';
-import { getFilteredWordListAsync, getIngredientsToDescriptionAsync, getMostAppropriateWord } from '../API/APIFunctions';
+import { getBatchIngredientSearchResultAsync } from '../API/APIFunctions';
 import { RNCamera } from 'react-native-camera';
 import FillToAspectRatio from '../Components/FillToAspectRatio';
 import ViewFinder from 'react-native-view-finder';
 import { getIngredientsListFromBarcodeAsync } from '../API/OFF';
 import { styles } from "../Styles/PageStyle"
-import Ad from '../Components/Ad'
+import BAd from '../Components/BAd'
+import { setDataAsync, fetchDataAsync, printAppVariablesAsync } from '../API/Storage'
+import { RateModal, isRateReadyAsync } from '../Components/RateModal'
+import IAd from '../Components/IAd'
+import { isInteruptReadyAsync } from '../Components/IAd';
 
 const { width: winWidth, height: winHeight } = Dimensions.get('window');
-var dataList = [];
+var scannedText = new Set([]);
+var scannedBarcodes = new Set([]);
 
 export default function ScanIngredientsPage(props) {
 
-    const [scannedWords, setScannedWords] = useState(new Set([]));
-    const [scannedBarcodes, setScannedBarcodes] = useState(new Set([]));
     const [detectingBarcode, setDetectingBarcode] = useState(true);
     const [scanner, setScanner] = useState(false);
     const [textBlocks, setTextBlocks] = useState([]);
@@ -24,91 +27,126 @@ export default function ScanIngredientsPage(props) {
     const [displayData, setDisplayData] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [viewFinderDimension, setViewFinderDimension] = useState({});
+    const [isReadyToRenderRateModal, setIsReadyToRenderRateModal] = useState(false)
+    const [isReadyToRenderInterstitialAd, setIsReadyToRenderInterstitialAd] = useState(false)
 
-    const handleClearAll = () => {
-        setScannedBarcodes(new Set([]));
-        setScannedWords(new Set([]));
+
+    useEffect(() => {
+        const updateSuccessfulScans = async () => {
+            let numOfScansAndSearchesSinceR = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceR"));
+            await setDataAsync("numOfScansAndSearchesSinceR", JSON.stringify(numOfScansAndSearchesSinceR + 1));
+            let numOfScansAndSearchesSinceI = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceI"));
+            await setDataAsync("numOfScansAndSearchesSinceI", JSON.stringify(numOfScansAndSearchesSinceI + 1));
+
+            if (displayData.length >= 3) {
+                await setDataAsync("isLastScanSuccessful", JSON.stringify(true));
+            }
+            else {
+                await setDataAsync("isLastScanSuccessful", JSON.stringify(false));
+            }
+            await printAppVariablesAsync();
+
+        };
+        if(displayData.length)
+            updateSuccessfulScans();
+    }, [displayData]);
+
+    const interruptIfReady = async () => {
+        let isLastScanSuccessful = JSON.parse(await fetchDataAsync("isLastScanSuccessful"));
+        if (isLastScanSuccessful) {
+            if (await isRateReadyAsync()) {
+                //choose to rate
+                setIsReadyToRenderRateModal(true);
+            }
+            else if (await isInteruptReadyAsync()) {
+                //choose to show interstitial ad
+                setIsReadyToRenderInterstitialAd(true);
+            }
+        }
+    };
+
+    const handleClearAllAsync = async () => {
+        // await updateSuccessfulScans()
+        await interruptIfReady()
+        scannedBarcodes = new Set([]);
+        scannedText = new Set([]);
         setDisplayData([]);
-        dataList = [];
-    }
+    };
 
-
-    const handleHomeButton = async () => {
+    const handleHomeButtonAsync = async () => {
         setTorch(false);
         setScanner(false);
+        await setDataAsync("lastPage", JSON.stringify(1))
+        await setDataAsync("currentPage", JSON.stringify(0))
         props.setPage("HomePage");
     };
 
-    const load_data = async (filtered_lst,abortController=new AbortController()) => {
-        console.log("filtered lst:", filtered_lst);
-        for (let i = 0; i < filtered_lst.length; i++) {
-            const data = await getIngredientsToDescriptionAsync([filtered_lst[i]],abortController);
-            dataList = [...dataList, ...data];
-            setDisplayData(dataList);
-        }
-    }
+    const updateFoundIngredientsAsync = async (ingredients_list, myAbortController) => {
+        const newData = await getBatchIngredientSearchResultAsync(ingredients_list, myAbortController);
+        const filtered_data = newData.filter(new_ => !displayData.map(old_ => old_.title).includes(new_.title));
+        const newDisplayData = [...displayData,...filtered_data];
+        setDisplayData(newDisplayData);
+    };
 
+    const getParsedIngredient = (ingredient) => {
+        return ingredient.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9 ]/g, " ").replace(/\s+/g, " ").trim()
+    };
+
+    const getParsedIngredientsArray = (data) => {
+        let filtered_data = data.reduce(function (filtered, ingredient) {
+            ingredient = getParsedIngredient(ingredient);
+            if (ingredient.length > 2) {
+                filtered.push(ingredient);
+            }
+            return filtered
+        }, []);
+        filtered_data = Array.from(new Set(filtered_data))
+        return filtered_data;
+    };
+
+    const parseTextBlocksForIngredientsList = () => {
+        const ingredients_lst = []
+        textBlocks.forEach((block) => {
+            let reduced_ingredients_lst = [
+                ...block.value.split(/,/),
+                // ...block.value.split(/\s+/)
+            ];
+            reduced_ingredients_lst = getParsedIngredientsArray(reduced_ingredients_lst);
+            reduced_ingredients_lst.forEach((word) => {
+                if (!scannedText.has(word)) {
+                    ingredients_lst.push(word);
+                    scannedText.add(word);
+                }
+            });
+            ;
+        });
+        return ingredients_lst;
+    };
 
     useEffect(() => {
         let isCancelled = false;
         const myAbortController = new AbortController();
-        const myAsyncFunction = async function () {
-            const word_lst = textBlocks.reduce((a, c) => {
-                const words1 = c.value.trim().split(",");
-                const words2 = c.value.trim().split(/[ ,]+/);
-                return [...a, ...words1, ...words2];
-            }, []);
-            const processed_word_lst = word_lst.filter(x => /^[a-zA-Z\s]+$/.test(x) && !scannedWords.has(x.toUpperCase()));
-            console.log("processed_word_lst", processed_word_lst);
-            if (!isCancelled && processed_word_lst.length > 0) {
-
-                const filtered_lst = (await getFilteredWordListAsync(processed_word_lst,myAbortController)).filter(x => !displayData.map(x => x.name).includes(x));
-
-                setScannedWords(new Set([...scannedWords, ...word_lst.map(x => x.toUpperCase()), ...filtered_lst.map(x => x.toUpperCase())]));
-                if (!isCancelled)
-                    await load_data(filtered_lst,myAbortController);
+        const main = async function () {
+            const ingredients_lst = (detectingBarcode) ?
+                await getIngredientsListFromBarcodeAsync(barcodes[0].data, myAbortController) :
+                parseTextBlocksForIngredientsList()
+            if (!isCancelled && ingredients_lst.length) {
+                await updateFoundIngredientsAsync(ingredients_lst, myAbortController);
             }
             if (!isCancelled) {
                 setIsSearching(false);
                 setTextBlocks([]);
-            }
-        }
-        if (!isCancelled && textBlocks.length > 0) {
-
-            myAsyncFunction();
-        }
-        return () => {
-            isCancelled = true;
-            myAbortController.abort();
-        };
-    }, [textBlocks]);
-
-
-    useEffect(() => {
-        let isCancelled = false;
-        const myAbortController = new AbortController();
-        const myAsyncFunction = async function () {
-            const ingredients_list = await getIngredientsListFromBarcodeAsync(barcodes[0].data,myAbortController);
-            if (!isCancelled && ingredients_list.length > 0) {
-                const filtered_lst = (await getFilteredWordListAsync(ingredients_list,myAbortController)).filter(x => !displayData.map(x => x.name).includes(x));
-                setScannedWords(new Set([...scannedWords, ...filtered_lst.map(x => x.toUpperCase())]));
-                if (!isCancelled)
-                    await load_data(filtered_lst,myAbortController);
-            }
-            if (!isCancelled) {
-                setIsSearching(false);
                 setBarcodes([]);
             }
-        }
-        if (!isCancelled && barcodes.length > 0) {
-            myAsyncFunction();
+        };
+        if (!isCancelled && (barcodes.length || textBlocks.length)) {
+            main();
         }
         return () => {
             isCancelled = true;
             myAbortController.abort();
         };
-    }, [barcodes]);
-
+    }, [textBlocks, barcodes]);
 
     const handleBarCodeRead = (obj) => {
         if (isSearching)
@@ -116,11 +154,15 @@ export default function ScanIngredientsPage(props) {
         const barcodes_obj = obj["barcodes"];
         //cap it to one barcode at a time for now
         const new_barcode = (barcodes_obj.length > 0) ? [barcodes_obj[0]] : [];
-        const filtered_barcode = new_barcode.filter(x => !scannedBarcodes.has(x.data));
-        if (filtered_barcode.length > 0) {
+        const filtered_barcodes = new_barcode.filter(barcode => {
+            if (!scannedBarcodes.has(barcode.data)) {
+                scannedBarcodes.add(barcode.data);
+                return true;
+            }
+        });
+        if (filtered_barcodes.length > 0) {
             setIsSearching(true);
-            setBarcodes(filtered_barcode);
-            setScannedBarcodes(new Set([...scannedBarcodes, ...filtered_barcode.map(x => x.data)]));
+            setBarcodes(filtered_barcodes);
         }
     };
 
@@ -157,16 +199,18 @@ export default function ScanIngredientsPage(props) {
     const handleTextRead = (obj) => {
         if (isSearching)
             return;
-        const text_blocks_obj_arr = obj["textBlocks"];
+        const text_blocks = obj["textBlocks"];
 
-        const filtered_text_block = text_blocks_obj_arr.filter(x => !scannedWords.has(x.value.toUpperCase()) && 100 < x.bounds.origin.y < viewFinderDimension["height"] + 150);
-        if (filtered_text_block.length > 0) {
-            filtered_text_block.forEach(el => {
-                console.log(el.bounds);
-            })
+        const filtered_text_blocks = text_blocks.reduce(function (filtered, block) {
+            if (100 < block.bounds.origin.y < viewFinderDimension["height"] + 150) {
+                filtered.push(block);
+            }
+            return filtered;
+        }, []);
+
+        if (filtered_text_blocks.length > 0) {
             setIsSearching(true);
-            setScannedWords(new Set([...scannedWords, ...filtered_text_block.map(x => x.value.toUpperCase())]));
-            setTextBlocks(filtered_text_block);
+            setTextBlocks(filtered_text_blocks);
         }
     };
 
@@ -199,9 +243,11 @@ export default function ScanIngredientsPage(props) {
 
     return (
         <Fragment>
+            <RateModal trigger={isReadyToRenderRateModal} setTrigger={setIsReadyToRenderRateModal} />
+            <IAd adConsentStatus={props.adConsentStatus} trigger={isReadyToRenderInterstitialAd} setTrigger={setIsReadyToRenderInterstitialAd} />
             <View style={styles.container}>
                 <View style={styles.navBar}>
-                    <Button title="Home" onPress={handleHomeButton} />
+                    <Button title="Home" onPress={handleHomeButtonAsync} />
                     {scanner &&
                         <View >
                             <Text style={[{ backgroundColor: "gold" }, styles.navBarText]}>TORCH:</Text>
@@ -265,11 +311,13 @@ export default function ScanIngredientsPage(props) {
                     </View>
                 }
                 <View style={styles.ingredients_lst}>
-                    <IngredientsList handleClearAll={handleClearAll} instructions={instructions} is_searching={isSearching} ingrdnts_to_dscrption={displayData} />
+                    <IngredientsList handleClearAll={async function () {
+                        await handleClearAllAsync()
+                    }} instructions={instructions} is_searching={isSearching} ingrdnts_to_dscrption={displayData} />
                 </View>
             </View>
             <View >
-                <Ad adConsentStatus={props.adConsentStatus} adType='banner' />
+                <BAd adConsentStatus={props.adConsentStatus} adType='banner' />
             </View>
         </Fragment>
     );

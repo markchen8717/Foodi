@@ -1,48 +1,64 @@
 import React, { useEffect, useState, Fragment } from 'react';
-import { View, Button } from 'react-native';
+import { View, Button, Text } from 'react-native';
 import IngredientsList from '../Components/IngredientsList';
 import { SearchBar } from 'react-native-elements';
-import { getFilteredWordListAsync, getIngredientsToDescriptionAsync, getSimilarWordsList,getMostAppropriateWord } from '../API/APIFunctions';
-import { getIngredientSearchResultsAsync } from '../API/Wiki';
+import { getIngredientFuzzySearchResultAsync } from '../API/APIFunctions';
 import { styles } from "../Styles/PageStyle"
-import Ad from '../Components/Ad'
-import { getFDAFilteredWordListAsync } from '../API/FDA';
-
+import BAd from '../Components/BAd'
+import { setDataAsync, fetchDataAsync, printAppVariablesAsync } from '../API/Storage'
+import { RateModal, isRateReadyAsync } from '../Components/RateModal'
+import IAd from '../Components/IAd'
+import { isInteruptReadyAsync } from '../Components/IAd'
+import { useDebounce } from "use-debounce";
 
 
 
 export default function SearchIngredientsPage(props) {
     const [query, setQuery] = useState("");
+    const [debouncedQuery] = useDebounce(query, 1000);
     const [isSearching, setIsSearching] = useState(false);
     const [data, setData] = useState([]);
+
+    const [isReadyToRenderRateModal, setIsReadyToRenderRateModal] = useState(false);
+    const [isReadyToRenderInterstitialAd, setIsReadyToRenderInterstitialAd] = useState(false);
+
     const handleHomeButton = async () => {
+        await setDataAsync("lastPage", JSON.stringify(2))
+        await setDataAsync("currentPage", JSON.stringify(0))
         props.setPage("HomePage");
     }
+
+    useEffect(() => {
+        const updateSuccessfulSearchs = async (response) => {
+            let numOfScansAndSearchesSinceR = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceR"))
+            await setDataAsync("numOfScansAndSearchesSinceR", JSON.stringify(numOfScansAndSearchesSinceR + 1))
+            let numOfScansAndSearchesSinceI = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceI"))
+            await setDataAsync("numOfScansAndSearchesSinceI", JSON.stringify(numOfScansAndSearchesSinceI + 1))
+
+            if (response.length > 0) {
+
+                await setDataAsync("isLastSearchSuccessful", JSON.stringify(true))
+            }
+            else {
+                await setDataAsync("isLastSearchSuccessful", JSON.stringify(false))
+            }
+            await printAppVariablesAsync();
+        }
+        updateSuccessfulSearchs(data)
+    }, [data]);
 
     useEffect(() => {
         let isCancelled = false;
         const myAbortController = new AbortController();
         const fetchData = async () => {
-            try {
-                let response, similarWordList= undefined
-                if (query == "") {
-                    response = []
-                } else {
-                    setIsSearching(true)
-                    similarWordList = getSimilarWordsList(query)
-                    response = await getIngredientsToDescriptionAsync(similarWordList, myAbortController);
-                }
-                if (!isCancelled) {
-                    setData(response)
-                    setIsSearching(false)
-                }
-            } catch (e) {
-                if (!isCancelled) {
-                    console.log(e);
-                }
+            let response = undefined
+            if (debouncedQuery !== "" && !isCancelled) {
+                setIsSearching(true)
+                response = await getIngredientFuzzySearchResultAsync(debouncedQuery, myAbortController);
+                setData(response)
+                setIsSearching(false)
             }
         };
-
 
         fetchData();
 
@@ -50,12 +66,37 @@ export default function SearchIngredientsPage(props) {
             isCancelled = true;
             myAbortController.abort();
         };
-    }, [query]);
+    }, [debouncedQuery]);
 
+    useEffect(() => {
+        let isCancelled = false;
+        const interruptIfReady = async () => {
+            if (query == "" && !isCancelled) {
+                let isLastSearchSuccessful = JSON.parse(await fetchDataAsync("isLastSearchSuccessful"));
+                //Choose to display interstitial ad or ask for rate when user clears search query
+                if (isLastSearchSuccessful==true) {
+                    if (await isRateReadyAsync()) {
+                        //choose to rate
+                        setIsReadyToRenderRateModal(true)
+                    }
+                    else if (await isInteruptReadyAsync()) {
+                        //choose to show interstitial ad
+                        setIsReadyToRenderInterstitialAd(true)
+                    }
+                }
+            }
+        };
+        interruptIfReady();
+        return () => {
+            isCancelled = true;
+        };
+    }, [query])
 
 
     return (
         <Fragment>
+            <RateModal trigger={isReadyToRenderRateModal} setTrigger={setIsReadyToRenderRateModal} />
+            <IAd adConsentStatus={props.adConsentStatus} trigger={isReadyToRenderInterstitialAd} setTrigger={setIsReadyToRenderInterstitialAd} />
             <View style={styles.container}>
                 <View style={styles.navBar}>
                     <Button title="Home" onPress={handleHomeButton} />
@@ -63,7 +104,9 @@ export default function SearchIngredientsPage(props) {
 
                 <SearchBar
                     placeholder="Type Here..."
-                    onChangeText={async (text) => (setQuery(text))}
+                    onChangeText={async (text) => {
+                        setQuery(text)
+                    }}
                     lightTheme round
                     value={query}
                     style={{ height: "100%", width: "100%" }}
@@ -75,7 +118,7 @@ export default function SearchIngredientsPage(props) {
                 </View>
             </View>
             <View >
-                <Ad adConsentStatus={props.adConsentStatus} adType='banner' />
+                <BAd adConsentStatus={props.adConsentStatus} adType='banner' />
             </View>
         </Fragment>
     );

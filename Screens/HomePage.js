@@ -1,22 +1,47 @@
-import React from 'react';
-import { Image, StyleSheet, Text, Dimensions, ImageBackground, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Image, StyleSheet, Text, Dimensions, ImageBackground, TouchableOpacity, Button } from 'react-native';
+import { fetchDataAsync, setDataAsync, printAppVariablesAsync } from '../API/Storage';
+import { RateModal, isRateReadyAsync } from '../Components/RateModal';
 
-
-const nlp = require('compromise');
 
 export default function HomePage(props) {
 
     handleScanButton = async () => {
+        await setDataAsync("lastPage", JSON.stringify(0))
+        await setDataAsync("currentPage", JSON.stringify(1))
         props.setPage("ScanIngredientsPage");
-
     }
 
     handleSearchButton = async () => {
+        await setDataAsync("lastPage", JSON.stringify(0))
+        await setDataAsync("currentPage", JSON.stringify(2))
         props.setPage("SearchIngredientsPage");
     }
+    const [isReadyToRenderRateModal, setIsReadyToRenderRateModal] = useState(false)
+
+    useEffect(() => {
+        let isCancelled = false;
+        const main = async () => {
+            
+            let lastPage = JSON.parse(await fetchDataAsync("lastPage"));
+            let isLastScanSuccessful = JSON.parse(await fetchDataAsync("isLastScanSuccessful"));
+            let isLastSearchSuccessful = JSON.parse(await fetchDataAsync("isLastSearchSuccessful"));
+
+            if (!isCancelled && lastPage != null && lastPage >= 1 && isLastScanSuccessful && isLastSearchSuccessful && await isRateReadyAsync()) {
+                setIsReadyToRenderRateModal(true)
+            }
+        }
+        main()
+        return () => {
+            isCancelled = true;
+        }
+    }, [])
+
+
 
     return (
         <ImageBackground source={require('../Images/HomePage_background.jpg')} style={style.container}>
+            <RateModal trigger={isReadyToRenderRateModal} setTrigger={setIsReadyToRenderRateModal} />
             <Image
                 style={style.logo}
                 source={require('../Images/HomePage_logo.png')}
@@ -33,7 +58,7 @@ export default function HomePage(props) {
                     source={require('../Images/HomePage_search_button.jpg')}
                 />
             </TouchableOpacity>
-        </ImageBackground>
+        </ImageBackground >
     );
 }
 

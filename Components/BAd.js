@@ -1,11 +1,11 @@
-import React, { useEffect, Fragment } from 'react';
+import React, { useEffect, Fragment, useState } from 'react';
 import { BannerAd, BannerAdSize, TestIds, AdsConsentStatus } from '@react-native-firebase/admob';
 import { REACT_APP_GOOGLE_BANNER_AD_UNIT_ID, REACT_APP_BUILD_ENV, REACT_APP_ADS } from 'react-native-dotenv';
 
-export default function Ad(props) {
+
+export default function BAd(props) {
     useEffect(() => {
         console.log("build env:", REACT_APP_BUILD_ENV, "show ads:", REACT_APP_ADS);
-        console.log("adUnitID:", REACT_APP_GOOGLE_BANNER_AD_UNIT_ID);
         console.log("ad consent status:", props.adConsentStatus);
     }, []);
     if (REACT_APP_ADS !== "FALSE" ) {
