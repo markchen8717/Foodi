@@ -132,8 +132,8 @@ android {
         applicationId "com.SaltyNerd.Foodi"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 12
-        versionName "3.1.5"
+        versionCode 13
+        versionName "3.1.6"
         missingDimensionStrategy 'react-native-camera', 'mlkit'
     }
     splits {

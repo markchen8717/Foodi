@@ -20,10 +20,10 @@ export default function BAd(props) {
                             requestNonPersonalizedAdsOnly: props.adConsentStatus === AdsConsentStatus.NON_PERSONALIZED,
                         }}
                         onAdLoaded={() => {
-                            console.log('Advert loaded');
+                            console.log('BAd loaded');
                         }}
                         onAdFailedToLoad={(error) => {
-                            console.log('Advert failed to load: ', error);
+                            console.log('BAd failed to load: ', error);
                         }}
                     />
                 }

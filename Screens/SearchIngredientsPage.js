@@ -12,7 +12,6 @@ import { isInteruptReadyAsync } from '../Components/IAd'
 import { useDebounce } from "use-debounce";
 
 
-
 export default function SearchIngredientsPage(props) {
     const [query, setQuery] = useState("");
     const [debouncedQuery] = useDebounce(query, 1000);
@@ -22,46 +21,43 @@ export default function SearchIngredientsPage(props) {
     const [isReadyToRenderRateModal, setIsReadyToRenderRateModal] = useState(false);
     const [isReadyToRenderInterstitialAd, setIsReadyToRenderInterstitialAd] = useState(false);
 
-    const handleHomeButton = async () => {
+    const handleHomeButtonAsync = async () => {
         await setDataAsync("lastPage", JSON.stringify(2))
         await setDataAsync("currentPage", JSON.stringify(0))
         props.setPage("HomePage");
     }
 
-    useEffect(() => {
-        const updateSuccessfulSearchs = async (response) => {
-            let numOfScansAndSearchesSinceR = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceR"))
-            await setDataAsync("numOfScansAndSearchesSinceR", JSON.stringify(numOfScansAndSearchesSinceR + 1))
-            let numOfScansAndSearchesSinceI = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceI"))
-            await setDataAsync("numOfScansAndSearchesSinceI", JSON.stringify(numOfScansAndSearchesSinceI + 1))
+    const updateSuccessfulSearchesAsync = async (response) => {
+        let numOfScansAndSearchesSinceR = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceR"))
+        await setDataAsync("numOfScansAndSearchesSinceR", JSON.stringify(numOfScansAndSearchesSinceR + 1))
+        let numOfScansAndSearchesSinceI = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceI"))
+        await setDataAsync("numOfScansAndSearchesSinceI", JSON.stringify(numOfScansAndSearchesSinceI + 1))
 
-            if (response.length > 0) {
+        if (response.length > 0) {
 
-                await setDataAsync("isLastSearchSuccessful", JSON.stringify(true))
-            }
-            else {
-                await setDataAsync("isLastSearchSuccessful", JSON.stringify(false))
-            }
-            await printAppVariablesAsync();
+            await setDataAsync("isLastSearchSuccessful", JSON.stringify(true))
         }
-        updateSuccessfulSearchs(data)
-    }, [data]);
+        else {
+            await setDataAsync("isLastSearchSuccessful", JSON.stringify(false))
+        }
+        await printAppVariablesAsync();
+    };
 
     useEffect(() => {
         let isCancelled = false;
         const myAbortController = new AbortController();
+
         const fetchData = async () => {
             let response = undefined
             if (debouncedQuery !== "" && !isCancelled) {
-                setIsSearching(true)
+                setIsSearching(true);
                 response = await getIngredientFuzzySearchResultAsync(debouncedQuery, myAbortController);
-                setData(response)
-                setIsSearching(false)
+                setData(response);
+                await updateSuccessfulSearchesAsync(response);
+                setIsSearching(false);
             }
         };
-
         fetchData();
-
         return () => {
             isCancelled = true;
             myAbortController.abort();
@@ -74,7 +70,7 @@ export default function SearchIngredientsPage(props) {
             if (query == "" && !isCancelled) {
                 let isLastSearchSuccessful = JSON.parse(await fetchDataAsync("isLastSearchSuccessful"));
                 //Choose to display interstitial ad or ask for rate when user clears search query
-                if (isLastSearchSuccessful==true) {
+                if (isLastSearchSuccessful == true) {
                     if (await isRateReadyAsync()) {
                         //choose to rate
                         setIsReadyToRenderRateModal(true)
@@ -92,14 +88,13 @@ export default function SearchIngredientsPage(props) {
         };
     }, [query])
 
-
     return (
         <Fragment>
             <RateModal trigger={isReadyToRenderRateModal} setTrigger={setIsReadyToRenderRateModal} />
             <IAd adConsentStatus={props.adConsentStatus} trigger={isReadyToRenderInterstitialAd} setTrigger={setIsReadyToRenderInterstitialAd} />
             <View style={styles.container}>
                 <View style={styles.navBar}>
-                    <Button title="Home" onPress={handleHomeButton} />
+                    <Button title="Home" onPress={handleHomeButtonAsync} />
                 </View>
 
                 <SearchBar

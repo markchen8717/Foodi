@@ -30,44 +30,12 @@ export default function ScanIngredientsPage(props) {
     const [isReadyToRenderRateModal, setIsReadyToRenderRateModal] = useState(false)
     const [isReadyToRenderInterstitialAd, setIsReadyToRenderInterstitialAd] = useState(false)
 
-
     useEffect(() => {
-        const updateSuccessfulScans = async () => {
-            let numOfScansAndSearchesSinceR = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceR"));
-            await setDataAsync("numOfScansAndSearchesSinceR", JSON.stringify(numOfScansAndSearchesSinceR + 1));
-            let numOfScansAndSearchesSinceI = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceI"));
-            await setDataAsync("numOfScansAndSearchesSinceI", JSON.stringify(numOfScansAndSearchesSinceI + 1));
-
-            if (displayData.length >= 3) {
-                await setDataAsync("isLastScanSuccessful", JSON.stringify(true));
-            }
-            else {
-                await setDataAsync("isLastScanSuccessful", JSON.stringify(false));
-            }
-            await printAppVariablesAsync();
-
-        };
-        if(displayData.length)
-            updateSuccessfulScans();
-    }, [displayData]);
-
-    const interruptIfReady = async () => {
-        let isLastScanSuccessful = JSON.parse(await fetchDataAsync("isLastScanSuccessful"));
-        if (isLastScanSuccessful) {
-            if (await isRateReadyAsync()) {
-                //choose to rate
-                setIsReadyToRenderRateModal(true);
-            }
-            else if (await isInteruptReadyAsync()) {
-                //choose to show interstitial ad
-                setIsReadyToRenderInterstitialAd(true);
-            }
-        }
-    };
+        scannedText = new Set([]);
+        scannedBarcodes = new Set([]);
+    }, [])
 
     const handleClearAllAsync = async () => {
-        // await updateSuccessfulScans()
-        await interruptIfReady()
         scannedBarcodes = new Set([]);
         scannedText = new Set([]);
         setDisplayData([]);
@@ -81,10 +49,27 @@ export default function ScanIngredientsPage(props) {
         props.setPage("HomePage");
     };
 
+    const updateSuccessfulScansAsync = async (response) => {
+        let numOfScansAndSearchesSinceR = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceR"));
+        await setDataAsync("numOfScansAndSearchesSinceR", JSON.stringify(numOfScansAndSearchesSinceR + 1));
+        let numOfScansAndSearchesSinceI = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceI"));
+        await setDataAsync("numOfScansAndSearchesSinceI", JSON.stringify(numOfScansAndSearchesSinceI + 1));
+
+        if (response.length >= 3) {
+            await setDataAsync("isLastScanSuccessful", JSON.stringify(true));
+        }
+        else {
+            await setDataAsync("isLastScanSuccessful", JSON.stringify(false));
+        }
+        await printAppVariablesAsync();
+
+    };
+
     const updateFoundIngredientsAsync = async (ingredients_list, myAbortController) => {
         const newData = await getBatchIngredientSearchResultAsync(ingredients_list, myAbortController);
         const filtered_data = newData.filter(new_ => !displayData.map(old_ => old_.title).includes(new_.title));
-        const newDisplayData = [...displayData,...filtered_data];
+        const newDisplayData = [...displayData, ...filtered_data];
+        await updateSuccessfulScansAsync(newDisplayData);
         setDisplayData(newDisplayData);
     };
 
@@ -147,6 +132,25 @@ export default function ScanIngredientsPage(props) {
             myAbortController.abort();
         };
     }, [textBlocks, barcodes]);
+
+    useEffect(() => {
+        const interruptIfReady = async () => {
+            if (displayData.length == 0) {
+                let isLastScanSuccessful = JSON.parse(await fetchDataAsync("isLastScanSuccessful"));
+                if (isLastScanSuccessful) {
+                    if (await isRateReadyAsync()) {
+                        //choose to rate
+                        setIsReadyToRenderRateModal(true);
+                    }
+                    else if (await isInteruptReadyAsync()) {
+                        //choose to show interstitial ad
+                        setIsReadyToRenderInterstitialAd(true);
+                    }
+                }
+            };
+        }
+        interruptIfReady();
+    }, [displayData]);
 
     const handleBarCodeRead = (obj) => {
         if (isSearching)

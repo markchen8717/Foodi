@@ -19,7 +19,7 @@ export const isRateReadyAsync = async () => {
 
 export const rateAsync = async () => {
     console.log("Rate!")
-    setDataAsync("isUserRated",JSON.stringify(true));
+    await setDataAsync("isUserRated",JSON.stringify(true));
 
     InAppReview.RequestInAppReview();
 
