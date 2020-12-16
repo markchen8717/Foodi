@@ -8,9 +8,10 @@ import { AdsConsent, AdsConsentStatus } from '@react-native-firebase/admob';
 import SplashScreen from 'react-native-splash-screen';
 import DeviceInfo from 'react-native-device-info';
 import { REACT_APP_GOOGLE_PLAY_LINK, REACT_APP_FORCE_UPDATE } from 'react-native-dotenv';
-import {setDataAsync} from './API/Storage';
-
-const cheerio = require('cheerio')
+import { setDataAsync } from './API/Storage';
+import { isMostRecentVersionAsync } from './API/APIFunctions';
+import RNRestart from 'react-native-restart'; 
+import NetInfo from "@react-native-community/netinfo";
 
 export default function App() {
 
@@ -19,6 +20,21 @@ export default function App() {
   const [adConsentStatus, setAdConsentStatus] = useState(null);
 
   useEffect(() => {
+    const assertInternetConnectionAsync = async()=>{
+      NetInfo.fetch().then(state => {
+        if (!state.isConnected) {
+          Alert.alert(
+            'No Internet Connection',
+            'Foodi requires an internet connection to function. Please check your connection and try again.',
+            [
+              { text: 'Retry', onPress: () => RNRestart.Restart()},
+            ],
+            { cancelable: false },
+          );
+        }
+  
+      });
+    }
     const getAdConsentAsync = async () => {
       const consentInfo = await AdsConsent.requestInfoUpdate([REACT_APP_AD_MOB_PUBLISHER_ID]);
       console.log("consent info", consentInfo);
@@ -37,21 +53,8 @@ export default function App() {
       }
     }
 
-    const checkUpdateAsync = async () => {
-      const response = await fetch(REACT_APP_GOOGLE_PLAY_LINK);
-      const responseText = await response.text();
-      const parsedText = cheerio.load(responseText).text();
-
-      //console.log(parsedText);
-      const a = parsedText.lastIndexOf("Current Version");
-      const b = parsedText.indexOf("R", a);
-      const latestVersionString = parsedText.substring(a, b).replace("Current Version", "");
-      const currentVersionString = DeviceInfo.getVersion();
-      const lastestVersionParsedInt = parseInt(latestVersionString.replace(/\./g,""));
-      const currentVersionParsedInt =  parseInt(currentVersionString.replace(/\./g,""));
-      console.log("lastest version:",latestVersionString);
-      console.log("current version:", currentVersionString);
-      if (REACT_APP_FORCE_UPDATE === "TRUE" &&  lastestVersionParsedInt >currentVersionParsedInt) {
+    const assertUpdateAsync = async () => {
+      if (REACT_APP_FORCE_UPDATE === "TRUE" && !await isMostRecentVersionAsync(DeviceInfo.getVersion())) {
         Alert.alert(
           'New Update Available',
           'Update Foodi from the Google Play store for new exciting features!',
@@ -60,22 +63,20 @@ export default function App() {
           ],
           { cancelable: false },
         );
-
       }
-      else
-        SplashScreen.hide();
     };
 
-    const main = async()=>{
+    const main = async () => {
 
-      if(!__DEV__)
-      {
-        console.log = () =>{};
+      if (!__DEV__) {
+        console.log = () => { };
       }
-      await setDataAsync("lastPage",JSON.stringify(-1))
-      await setDataAsync("currentPage",JSON.stringify(0))
+      await assertInternetConnectionAsync();
+      await setDataAsync("lastPage", JSON.stringify(-1))
+      await setDataAsync("currentPage", JSON.stringify(0))
       await getAdConsentAsync();
-      await checkUpdateAsync();
+      await assertUpdateAsync();
+      SplashScreen.hide();
     }
 
     main();

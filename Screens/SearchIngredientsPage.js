@@ -10,7 +10,7 @@ import { RateModal, isRateReadyAsync } from '../Components/RateModal'
 import IAd from '../Components/IAd'
 import { isInteruptReadyAsync } from '../Components/IAd'
 import { useDebounce } from "use-debounce";
-
+import NetworkBanner from "../Components/NetworkBanner";
 
 export default function SearchIngredientsPage(props) {
     const [query, setQuery] = useState("");
@@ -68,6 +68,7 @@ export default function SearchIngredientsPage(props) {
         let isCancelled = false;
         const interruptIfReady = async () => {
             if (query == "" && !isCancelled) {
+                // await printAppVariablesAsync();
                 let isLastSearchSuccessful = JSON.parse(await fetchDataAsync("isLastSearchSuccessful"));
                 //Choose to display interstitial ad or ask for rate when user clears search query
                 if (isLastSearchSuccessful == true) {
@@ -90,6 +91,7 @@ export default function SearchIngredientsPage(props) {
 
     return (
         <Fragment>
+            <NetworkBanner/>
             <RateModal trigger={isReadyToRenderRateModal} setTrigger={setIsReadyToRenderRateModal} />
             <IAd adConsentStatus={props.adConsentStatus} trigger={isReadyToRenderInterstitialAd} setTrigger={setIsReadyToRenderInterstitialAd} />
             <View style={styles.container}>

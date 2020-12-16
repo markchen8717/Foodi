@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { InterstitialAd, AdEventType, TestIds, AdsConsentStatus } from '@react-native-firebase/admob';
 import { fetchDataAsync, setDataAsync } from '../API/Storage';
-import { REACT_APP_GOOGLE_INTERSTITIAL_AD_UNIT_ID, REACT_APP_BUILD_ENV, REACT_APP_ADS } from 'react-native-dotenv';
+import { REACT_APP_IAD_KEYWORDS, REACT_APP_GOOGLE_INTERSTITIAL_AD_UNIT_ID, REACT_APP_BUILD_ENV, REACT_APP_ADS } from 'react-native-dotenv';
 
 export const isInteruptReadyAsync = async () => {
   const numOfScansAndSearchesSinceI = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceI"));
@@ -18,7 +18,7 @@ export default function IAd(props) {
       {
         requestNonPersonalizedAdsOnly:
           props.adConsentStatus === AdsConsentStatus.NON_PERSONALIZED,
-        keywords: ['healthy', 'organic', 'food'],
+        keywords: REACT_APP_IAD_KEYWORDS.split(","),
       });
     interstitial.onAdEvent(type => {
       if (type === AdEventType.LOADED) {

@@ -12,6 +12,7 @@ import { setDataAsync, fetchDataAsync, printAppVariablesAsync } from '../API/Sto
 import { RateModal, isRateReadyAsync } from '../Components/RateModal'
 import IAd from '../Components/IAd'
 import { isInteruptReadyAsync } from '../Components/IAd';
+import NetworkBanner from '../Components/NetworkBanner';
 
 const { width: winWidth, height: winHeight } = Dimensions.get('window');
 var scannedText = new Set([]);
@@ -55,7 +56,7 @@ export default function ScanIngredientsPage(props) {
         let numOfScansAndSearchesSinceI = JSON.parse(await fetchDataAsync("numOfScansAndSearchesSinceI"));
         await setDataAsync("numOfScansAndSearchesSinceI", JSON.stringify(numOfScansAndSearchesSinceI + 1));
 
-        if (response.length >= 3) {
+        if (response.length > 0) {
             await setDataAsync("isLastScanSuccessful", JSON.stringify(true));
         }
         else {
@@ -136,6 +137,8 @@ export default function ScanIngredientsPage(props) {
     useEffect(() => {
         const interruptIfReady = async () => {
             if (displayData.length == 0) {
+                // await printAppVariablesAsync();
+
                 let isLastScanSuccessful = JSON.parse(await fetchDataAsync("isLastScanSuccessful"));
                 if (isLastScanSuccessful) {
                     if (await isRateReadyAsync()) {
@@ -247,6 +250,10 @@ export default function ScanIngredientsPage(props) {
 
     return (
         <Fragment>
+            <NetworkBanner callback={() => {
+                scannedBarcodes = new Set([]);
+                scannedText = new Set([]);
+            }} />
             <RateModal trigger={isReadyToRenderRateModal} setTrigger={setIsReadyToRenderRateModal} />
             <IAd adConsentStatus={props.adConsentStatus} trigger={isReadyToRenderInterstitialAd} setTrigger={setIsReadyToRenderInterstitialAd} />
             <View style={styles.container}>
