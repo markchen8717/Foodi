@@ -4,13 +4,13 @@
 </a>
 
 ## Demo
-Foodi is a mobile app I created to provide users with detailed information about ingredients inside a food product.
+Foodi is an easy to use mobile app that I've created to inform users about the details of ingredients inside a food product.
 
 ![App Demo](Demo/output1.gif)
-To learn more about what is inside a food product, users may scan the ingredients list on the product packaging with the camera built-in on their phones. Also through the use of optical recognition, users may find and scan the barcode on the packaging for ingredient details.
+To learn more about the ingredients inside a food product, users can simply scan the ingredients list or barcode on the product package with the camera built-in on their phones.  Through the use of optical recognition, Foodi will then present users with a list of ingredients that it has found, along with their text descriptions and visuals.
 
 ![App Demo](Demo/output2.gif)
-Alternatively, users may search for a specific ingredient by inputting its name. Both food ingredients and chemical ingredients are supported.
+Alternatively, users may search for specific ingredients by inputting their names. Foodi supports both food and chemical ingredients.
 
 ## Software Stack
 - ### React Native
@@ -21,5 +21,5 @@ Alternatively, users may search for a specific ingredient by inputting its name.
   A free food product database that has over 1.3 million products listed including information such as ingredients, allergens, nutrition facts, and more. After the product barcode is obtained, Foodi queries this database for the ingredients corresponding to the product.
 - ### Wikipedia Search API
   It needs no introduction, but nonetheless, Wikipedia is a free online encyclopedia, created and edited by volunteers around the world. The detailed information of each ingredient is obtained from here, through the use of its search API.
-- ### React Native Fetch API
-  React Native provides the Fetch API for developer's networking needs. Thanks to this, Foodi doesn't require a back-end server to act as a middleman between the databases and its users. Data can be easily requested on demand, from the end user's device, directly to the appropriate database, with greater efficiency.
+- ### Express.js Backend RESTful API
+  Express is a back end web application framework for Node.js, and it's also what's used to build Foodi's backend. Multimedia data such as text descriptions and visuals of ingredients are extracted from Wikipedia and saved on the server after post processing. The database is then queried through the REST architectural style API constructed with Express from the frontend React Native app.
