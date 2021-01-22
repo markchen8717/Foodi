@@ -24,5 +24,9 @@ Alternatively, users may search for specific ingredients by inputting their name
   A free food product database that has over 1.3 million products listed including information such as ingredients, allergens, nutrition facts, and more. After the product barcode is obtained, Foodi queries this database for the ingredients corresponding to the product.
 - ### Wikipedia Search API
   It needs no introduction, but nonetheless, Wikipedia is a free online encyclopedia, created and edited by volunteers around the world. The detailed information of each ingredient is obtained from here, through the use of its search API.
+
+- ### ~~React Native Fetch API~~
+  ~~React Native provides the Fetch API for developer's networking needs. Thanks to this, Foodi doesn't require a back-end server to act as a middleman between the databases and its users. Data can be easily requested on demand, from the end user's device, directly to the appropriate database, with greater efficiency.~~
+
 - ### Express.js Backend RESTful API
   Express is a back end web application framework for Node.js, and it's also what's used to build Foodi's backend. Multimedia data such as text descriptions and visuals of ingredients are extracted from Wikipedia and saved on the server after post processing. The database is then queried through the REST architectural style API constructed with Express from the frontend React Native app.
