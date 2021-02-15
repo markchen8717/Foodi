@@ -2,17 +2,17 @@
 
 
 <a href="https://play.google.com/store/apps/details?id=com.SaltyNerd.Foodi" target="_blank">
-  <img src="Images/foodi%20logo-white-bg-512x512.jpg" height="80"/>
+  <img src="/Frontend/Images/foodi%20logo-white-bg-512x512.jpg" height="80"/>
   <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80"/>
 </a>
 
 ## Demo
 Foodi is an easy to use mobile app that I've created to inform users about the details of ingredients inside a food product.
 
-![App Demo](Demo/output1.gif)
+![App Demo](/Frontend/Demo/output1.gif)
 To learn more about the ingredients inside a food product, users can simply scan the ingredients list or barcode on the product package with the camera built-in on their phones.  Through the use of optical recognition, Foodi will then present users with a list of ingredients that it has found, along with their text descriptions and visuals.
 
-![App Demo](Demo/output2.gif)
+![App Demo](/Frontend/Demo/output2.gif)
 Alternatively, users may search for specific ingredients by inputting their names. Foodi supports both food and chemical ingredients.
 
 ## Software Stack
