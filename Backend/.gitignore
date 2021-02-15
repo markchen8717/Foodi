@@ -1,0 +1,4 @@
+test.*
+/external_data
+.env
+/node_modules
