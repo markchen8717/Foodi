@@ -11,9 +11,6 @@ Foodi is an easy to use mobile app that I've created to inform users about the d
 ## Software Stack
 - ### Express.js
     <img src="https://miro.medium.com/max/6668/1*XP-mZOrIqX7OsFInN2ngRQ.png" width=137 height=60/>
-- ### Nodemailer
-    <img src="https://nodemailer.com/nm_logo_200x136.png" width=88 height=60/>
-    Email automation of user feedback
 - ### Fuse.js
     <img src="https://fusejs.io/icons/android-icon-192x192.png" width=60 height=60/>
     Enabling fuzzy search on a structured JSON database
