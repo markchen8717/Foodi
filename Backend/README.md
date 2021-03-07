@@ -2,7 +2,7 @@
 
 
 <a href="https://play.google.com/store/apps/details?id=com.SaltyNerd.Foodi" target="_blank">
-  <img src="https://github.com/markchen8717/Foodi/blob/master/Images/foodi%20logo-white-bg-512x512.jpg" height="80"/>
+
   <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80"/>
 </a>
 
