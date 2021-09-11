@@ -1,5 +1,6 @@
 # Foodi
-## *As of V3.1.7, Foodi is closed source. This is an archived repo of Foodi. Foodi the app is still being maintained*
+## Note
+## *As of V3.1.7, Foodi is closed source. This is an archived repo of Foodi. Foodi the app is still actively maintained.*
 
 <a href="https://play.google.com/store/apps/details?id=com.SaltyNerd.Foodi" target="_blank">
   <img src="/Frontend/Images/foodi%20logo-white-bg-512x512.jpg" height="80"/>
